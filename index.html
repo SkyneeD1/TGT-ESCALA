@@ -138,7 +138,7 @@
 <script>
   const DIAS=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
   const SLOTS=['A','B','C','D','E','F'];
-  const romano = s => ({A:'I',B:'II',C:'III',D:'IV',E:'V',F:'VI'}[s]||s);
+  const romano = s => s;   // mostra a letra (A,B,C...) em vez de I,II,III
   const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   let prefs = new Set();
   let pintando=false, pintMode=true, user=null, meuNick='', meuFolga=false;

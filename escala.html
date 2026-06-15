@@ -220,7 +220,7 @@
         <h3>📊 Distribuição</h3>
         <div class="dsum" id="dsum">—</div>
         <div id="dist"></div>
-        <p class="hint">Listas <b>I–IV</b>: automático por igual (quem tem menos horas tem prioridade). Listas <b>⭐ V e VI</b>: VIP, à mão — o "Gerar automático" não toca nelas.</p>
+        <p class="hint">Listas <b>A–D</b>: automático por igual (quem tem menos horas tem prioridade). Listas <b>⭐ E e F</b>: VIP, à mão — o "Gerar automático" não toca nelas.</p>
       </div>
     </div>
   </div>
@@ -238,7 +238,7 @@
   const SLOTS = ['A','B','C','D','E','F'];
   const AUTO_SLOTS = ['A','B','C','D'];
   const VIP_SLOTS = ['E','F'];
-  const romano = s => ({A:'I',B:'II',C:'III',D:'IV',E:'V',F:'VI'}[s]||s);
+  const romano = s => s;   // mostra a letra (A,B,C...) em vez de I,II,III
   function novaEscala(){ const o={}; SLOTS.forEach(s=>o[s]={}); return o; }
   let membros = [], escala = novaEscala();
   let selIdx = -1, modo = 'pref', slotSel = 'A', pintando=false, pintMode=true;
@@ -425,7 +425,7 @@
     renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats();
     let total=0; AUTO_SLOTS.forEach(s=>total+=Object.keys(escala[s]).length);
     salvarRascunho();
-    toast(`⚡ Escala gerada — <b>${total}</b> lives nas listas I–IV (V e VI são VIP, à mão).`,'ok');
+    toast(`⚡ Escala gerada — <b>${total}</b> lives nas listas A–D (E e F são VIP, à mão).`,'ok');
   }
   async function preencherVazias(todas){
     if(selIdx<0){ toast('Selecione um membro primeiro.','warn'); return; }
