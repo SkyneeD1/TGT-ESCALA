@@ -429,6 +429,8 @@
     SLOTS.forEach(s=>{ const arr=[]; let id=0; for(let dia=0;dia<7;dia++)for(let h=0;h<24;h++){ const nick=escala[s][dia+'-'+h]; if(!nick)continue; id++;
       arr.push({ item:id, Descricao:nick, Datahorario:dataHora(dia,h), Tipo:'2 -Executar Live Programada', Complemento:linkDe(nick), Status:'1 -Live Agendada', Refresh:'20' }); } listas['lives_'+s.toLowerCase()]=arr; });
     box.innerHTML='⏳ Enviando pro sistema TGT...';
+    // publica a escala pros streamers verem (mesmo que o envio pro TGT falhe)
+    try{ await sb.from('escala_pub').upsert({ id:1, semana_inicio:dataIni, dados:escala, updated_at:new Date().toISOString() }); }catch(e){}
     try{
       const resp=await fetch('/api/enviar-lives',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ token:adminToken, senha, semana_inicio:dataIni, listas }) });
       const txt=await resp.text(); let j=null; try{j=JSON.parse(txt);}catch(e){}

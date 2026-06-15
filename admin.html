@@ -114,18 +114,39 @@
     carregarLista();
   }
 
+  const escJs = s => String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   async function carregarLista(){
     const box=document.getElementById('lista'); box.textContent='Carregando...';
-    const {data:perfis,error}=await sb.from('profiles').select('user_id,nick,link');
+    const {data:perfis,error}=await sb.from('profiles').select('user_id,nick,link,ativo');
     if(error){ box.innerHTML='<span style="color:var(--err)">Erro: '+error.message+'</span>'; return; }
     const {data:disp}=await sb.from('disponibilidade').select('user_id,prefs');
     const horas={}; (disp||[]).forEach(d=>horas[d.user_id]=Array.isArray(d.prefs)?d.prefs.length:0);
     if(!perfis||!perfis.length){ box.innerHTML='<p class="sub">Nenhum streamer criado ainda.</p>'; return; }
     perfis.sort((a,b)=>(horas[b.user_id]||0)-(horas[a.user_id]||0));
-    let h='<table><thead><tr><th>Nick</th><th>Disponibilidade</th><th>Horas</th><th>Canal</th></tr></thead><tbody>';
-    perfis.forEach(p=>{ const n=horas[p.user_id]||0;
-      h+=`<tr><td><b>${p.nick}</b></td><td>${n>0?'<span class="pill ok">preencheu</span>':'<span class="pill no">pendente</span>'}</td><td>${n}h</td><td style="color:var(--muted);font-size:12px">${p.link||'—'}</td></tr>`; });
+    let h='<table><thead><tr><th>Nick</th><th>Status</th><th>Disp.</th><th>Horas</th><th>Ações</th></tr></thead><tbody>';
+    perfis.forEach(p=>{ const n=horas[p.user_id]||0; const ativo=p.ativo!==false; const nk=escJs(p.nick);
+      h+=`<tr>
+        <td><b>${p.nick}</b><div style="color:var(--muted);font-size:11px">${p.link||'—'}</div></td>
+        <td>${ativo?'<span class="pill ok">ativo</span>':'<span class="pill no">desativado</span>'}</td>
+        <td>${n>0?'<span class="pill ok">preencheu</span>':'<span class="pill no">pendente</span>'}</td>
+        <td>${n}h</td>
+        <td style="white-space:nowrap">
+          <button class="btn ghost" style="padding:4px 9px;font-size:11px" onclick="toggleUsuario('${p.user_id}','${nk}',${ativo?'false':'true'})">${ativo?'⏸️ Desativar':'▶️ Ativar'}</button>
+          <button class="btn ghost" style="padding:4px 9px;font-size:11px;color:#ff9b9b" onclick="deletarUsuario('${p.user_id}','${nk}')">🗑️ Excluir</button>
+        </td></tr>`; });
     box.innerHTML=h+'</tbody></table>';
+  }
+  async function toggleUsuario(id,nick,ativar){
+    if(!confirm((ativar?'Ativar':'Desativar')+' o streamer "'+nick+'"?'+(ativar?'':' Ele não vai mais conseguir logar (mas os dados ficam).'))) return;
+    const r=await fetch('/api/toggle-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,user_id:id,ativar})});
+    const j=await r.json(); if(!r.ok){ alert('Erro: '+(j.error||r.status)); return; }
+    carregarLista();
+  }
+  async function deletarUsuario(id,nick){
+    if(!confirm('EXCLUIR "'+nick+'" de vez? Apaga o login E a disponibilidade dele. Não dá pra desfazer.')) return;
+    const r=await fetch('/api/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,user_id:id})});
+    const j=await r.json(); if(!r.ok){ alert('Erro: '+(j.error||r.status)); return; }
+    carregarLista();
   }
 
   (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session&&session.user.email===window.ADMIN_EMAIL) abrir(); })();
