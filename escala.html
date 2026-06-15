@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TGT — Montar Escala</title>
+<style>
+  :root{
+    --bg:#120e07; --bg2:#1a1409; --card:#211a0d; --card2:#2a2110;
+    --border:rgba(255,193,7,.20); --border2:rgba(255,193,7,.40);
+    --muted:#b9a472; --muted2:#8a7c52; --gold:#ffd24a; --amber:#ff9d00;
+    --txt:#f6ecd0; --kick:#2ecc71; --twitch:#b86bff; --youtube:#ff5a5a;
+    --ok:#2ecc71; --warn:#ffd24a; --err:#ff6b6b;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+        radial-gradient(1100px 560px at 0% -5%, rgba(255,157,0,.14), transparent 55%),
+        radial-gradient(1100px 560px at 100% -5%, rgba(255,210,74,.12), transparent 55%),
+        var(--bg);
+       color:var(--txt);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.5;padding:22px;min-height:100vh}
+  .wrap{max-width:1380px;margin:0 auto}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:rgba(255,210,74,.22);border-radius:8px}
+  .topbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+  .brand{flex:1;min-width:240px;display:flex;align-items:center;gap:14px}
+  .logo{height:60px;width:auto;filter:drop-shadow(0 4px 14px rgba(255,180,0,.35))}
+  h1{font-size:28px;margin:0;background:linear-gradient(90deg,var(--amber),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800;letter-spacing:.5px;outline:none;display:inline-block}
+  .sub{color:var(--muted);margin:2px 0 0;font-size:13px}
+  .stats{display:flex;gap:10px;flex-wrap:wrap}
+  .stat{background:linear-gradient(135deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:12px;padding:8px 14px;min-width:88px;text-align:center;box-shadow:var(--shadow)}
+  .stat .n{font-size:20px;font-weight:800;color:var(--gold);font-family:'Consolas',monospace;line-height:1.1}
+  .stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted2);margin-top:2px}
+  .card{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .card h3{margin:0 0 12px;font-size:14px;color:var(--gold);font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:7px}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px}
+  input,select{width:100%;background:#170f05;border:1px solid var(--border);border-radius:10px;color:var(--txt);padding:9px 11px;font-size:13px;outline:none;transition:border-color .15s}
+  input:focus,select:focus{border-color:var(--gold)}
+  input[type=file]{padding:7px;font-size:12px}
+  .btn{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;border:none;border-radius:10px;padding:10px 15px;font-weight:800;cursor:pointer;font-size:13px;transition:filter .15s,transform .05s;white-space:nowrap}
+  .btn:hover{filter:brightness(1.08)} .btn:active{transform:translateY(1px)}
+  .btn.send{background:linear-gradient(100deg,#0b8a3e,#2ecc71);color:#04210f}
+  .btn.outline{background:transparent;color:var(--gold);border:1px solid var(--border2)}
+  .btn.outline:hover{background:rgba(255,210,74,.08)}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+  .btn.ghost:hover{color:var(--txt);border-color:var(--border2)}
+  .btn.sm{padding:7px 11px;font-size:12px}
+  .row{display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end} .row .fld{flex:1;min-width:90px}
+  .layout{display:grid;grid-template-columns:300px minmax(0,1fr) 290px;gap:16px;align-items:start}
+  @media(max-width:1150px){.layout{grid-template-columns:1fr}}
+  .memb-tools{display:flex;gap:7px;margin-bottom:10px} .memb-tools input{flex:1}
+  .memb-tools select{width:auto;flex:0 0 auto;font-size:12px;padding:9px 8px}
+  .memb-list{max-height:430px;overflow-y:auto;margin:-4px;padding:4px}
+  .memb{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.22);margin-bottom:7px;cursor:pointer;transition:border-color .12s,background .12s;position:relative}
+  .memb:hover{border-color:var(--border2)}
+  .memb.sel{background:linear-gradient(100deg,rgba(255,157,0,.20),rgba(255,210,74,.10));border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+  .ava{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#0c0c0c}
+  .ava.kick{background:linear-gradient(135deg,#0b8a3e,#2ecc71)}
+  .ava.twitch{background:linear-gradient(135deg,#7a2bd6,#b86bff);color:#fff}
+  .ava.youtube{background:linear-gradient(135deg,#c81d1d,#ff5a5a);color:#fff}
+  .ava.outro{background:linear-gradient(135deg,var(--amber),var(--gold))}
+  .memb-info{flex:1;min-width:0}
+  .memb-info .nm{font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+  .memb-info .meta{display:flex;align-items:center;gap:6px;margin-top:3px}
+  .pt{font-family:'Consolas',monospace;font-size:12px;color:var(--gold);font-weight:700}
+  .memb.naoq .pt{color:#c77}
+  .qbadge{font-size:10px;color:#0c2a12;background:linear-gradient(100deg,#2ecc71,#7CFC00);border-radius:6px;padding:1px 6px;font-weight:800}
+  .prog{flex:1;height:5px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;min-width:30px}
+  .prog>i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--gold));border-radius:4px;transition:width .25s}
+  .prog.full>i{background:linear-gradient(90deg,#2ecc71,#7CFC00)}
+  .memb .x{color:#c77;font-weight:700;padding:2px 4px;border-radius:6px;opacity:.5;transition:opacity .12s}
+  .memb:hover .x{opacity:1} .memb .x:hover{background:rgba(255,80,80,.15)}
+  .seg{display:flex;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:12px}
+  .seg .opt{flex:1;padding:9px;border-radius:9px;text-align:center;font-weight:700;font-size:12.5px;cursor:pointer;color:var(--muted);transition:all .15s}
+  .seg .opt.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;box-shadow:var(--shadow)}
+  .tabs{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+  .tab{padding:8px 15px;border-radius:999px;border:1px solid var(--border);background:rgba(0,0,0,.22);color:var(--muted);font-weight:700;cursor:pointer;font-size:13px;transition:all .12s}
+  .tab:hover{border-color:var(--border2);color:var(--txt)}
+  .tab.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;border-color:transparent}
+  .tab.resumo.on{background:linear-gradient(100deg,#7a2bd6,#b86bff);color:#fff}
+  .tab.vip{border-color:rgba(255,210,74,.5)}
+  .tab.vip.on{background:linear-gradient(100deg,#b8860b,#ffd24a);color:#3a2a00}
+  .tab .cnt{font-size:10px;opacity:.75;margin-left:5px;font-family:'Consolas',monospace}
+  .grade-wrap{max-height:620px;overflow:auto;border:1px solid var(--border);border-radius:12px}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;user-select:none}
+  thead th{position:sticky;top:0;z-index:3;background:linear-gradient(180deg,#2d2411,#241c0e);color:#fff;padding:9px 4px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--border2)}
+  thead th:first-child{position:sticky;left:0;z-index:4}
+  thead th.now-col{color:var(--gold)}
+  .hcol{position:sticky;left:0;z-index:2;color:var(--muted);font-family:'Consolas',monospace;font-weight:700;padding:6px 9px;cursor:pointer;white-space:nowrap;background:#1d1609;border-right:1px solid var(--border)}
+  tbody tr:hover .hcol{color:var(--gold)}
+  td{border-bottom:1px solid rgba(255,255,255,.04);text-align:center;padding:0}
+  td .cell{min-height:32px;display:flex;align-items:center;justify-content:center;padding:4px 3px;cursor:pointer;font-size:11px;transition:background .1s}
+  td .cell:hover{background:rgba(255,210,74,.07)}
+  td .cell.has{color:#3a2a00;font-weight:700;border-radius:7px;margin:2px;min-height:28px}
+  td .cell.has.kick{background:linear-gradient(100deg,#0b8a3e,#2ecc71);color:#04210f}
+  td .cell.has.twitch{background:linear-gradient(100deg,#7a2bd6,#b86bff);color:#fff}
+  td .cell.has.youtube{background:linear-gradient(100deg,#c81d1d,#ff5a5a);color:#fff}
+  td .cell.has.outro{background:linear-gradient(100deg,var(--amber),var(--gold))}
+  td .cell.pref{box-shadow:0 0 0 2px var(--gold) inset;border-radius:7px}
+  td.dawn{background:rgba(0,0,0,.18)}
+  tr.now-row{background:rgba(46,204,113,.06)} tr.now-row .hcol{color:var(--ok)}
+  td.now-col-cell{background:rgba(255,210,74,.05)}
+  .dim{color:#5b4f30}
+  td .heat{min-height:34px;display:flex;align-items:center;justify-content:center;font-family:'Consolas',monospace;font-weight:700;font-size:12px;margin:2px;border-radius:7px;color:#0c0c0c}
+  .legenda{font-size:11px;color:var(--muted);margin:0 0 10px;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+  .lp{padding:2px 9px;border-radius:7px;font-weight:700;color:#fff;font-size:11px}
+  .lp.kick{background:#2ecc71;color:#04210f}.lp.twitch{background:#b86bff}.lp.youtube{background:#ff5a5a}.lp.outro{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00}.lp.pref{background:transparent;box-shadow:0 0 0 2px var(--gold) inset;color:var(--gold)}
+  .dsum{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.7} .dsum b{color:var(--gold)}
+  .drow{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
+  .drow .ava{width:26px;height:26px;font-size:11px;border-radius:8px}
+  .drow .u{flex:1;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .drow .t{font-family:'Consolas',monospace;color:var(--gold);font-weight:700;min-width:34px;text-align:right}
+  .hint{font-size:11px;color:var(--muted2);margin-top:10px;line-height:1.6}
+  .info-bar{background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.3);border-radius:10px;padding:11px 13px;margin-bottom:10px;font-size:13px;display:none}
+  .toolbar-info{flex:1;margin:0;font-size:12px;color:var(--muted)} .toolbar-info b{color:var(--gold)}
+  .foot{color:var(--muted2);font-size:11px;text-align:center;margin-top:20px}
+  .tier-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;color:var(--muted)}
+  .tier-row input{width:62px;padding:6px;text-align:center}
+  #toasts{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+  .toast{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--border2);border-left:4px solid var(--gold);border-radius:11px;padding:12px 16px;font-size:13px;color:var(--txt);box-shadow:var(--shadow);max-width:340px;font-weight:600}
+  .toast.ok{border-left-color:var(--ok)} .toast.warn{border-left-color:var(--warn)} .toast.err{border-left-color:var(--err)}
+  #modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+  #modal.on{display:flex}
+  .modal-box{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--border2);border-radius:16px;padding:22px;max-width:380px;box-shadow:var(--shadow);text-align:center}
+  .modal-box p{margin:0 0 18px;font-size:14px} .modal-box .row{justify-content:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <img class="logo" src="logo.png" alt="TGT">
+      <div>
+        <h1 contenteditable="true" spellcheck="false" title="clique pra renomear">ESCALA DOURADA TGT</h1>
+        <p class="sub">Painel do admin — puxe do banco, gere e envie pro sistema.</p>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="st-membros">0</div><div class="l">Lobos</div></div>
+      <div class="stat"><div class="n" id="st-lives">0</div><div class="l">Lives</div></div>
+      <div class="stat"><div class="n" id="st-cob">0%</div><div class="l">Cobertura</div></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost" onclick="location.href='admin.html'">👥 Usuários</button>
+      <button class="btn ghost" onclick="sair()">Sair</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🗄️ Dados</h3>
+    <div class="row">
+      <button class="btn" onclick="carregarDoBanco()">↻ Puxar disponibilidades do banco</button>
+      <div class="fld" style="min-width:200px"><label>Planilha de PONTUAÇÃO (nick + %)</label><input id="f-pontuacao" type="file" accept=".xlsx"></div>
+      <button class="btn outline" onclick="importarPontuacao()">📥 Aplicar pontuação</button>
+    </div>
+    <p class="hint" id="imp-status">1) Puxe os streamers do banco · 2) Importe a pontuação (.xlsx) · 3) Gere a escala e envie. <i>(o leitor de Excel precisa de internet)</i></p>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+        <h3>⚙️ Parâmetros</h3>
+        <div class="row"><div class="fld"><label>Início da semana (segunda)</label><input id="p-data" type="date"></div></div>
+        <label style="margin-top:14px">Faixas — pontuação (%) → horas/semana <span style="text-transform:none;color:var(--gold)">(editável)</span></label>
+        <div id="tiers">
+          <div class="tier-row">a partir de <input id="t-min-0" type="number" value="60" oninput="lerTiers()"> % → <input id="t-h-0" type="number" value="1" oninput="lerTiers()"> h</div>
+          <div class="tier-row">a partir de <input id="t-min-1" type="number" value="70" oninput="lerTiers()"> % → <input id="t-h-1" type="number" value="2" oninput="lerTiers()"> h</div>
+          <div class="tier-row">a partir de <input id="t-min-2" type="number" value="87" oninput="lerTiers()"> % → <input id="t-h-2" type="number" value="3" oninput="lerTiers()"> h</div>
+          <div class="tier-row">a partir de <input id="t-min-3" type="number" value="96" oninput="lerTiers()"> % → <input id="t-h-3" type="number" value="4" oninput="lerTiers()"> h</div>
+        </div>
+        <p class="hint">Abaixo da menor faixa não entra. Quem pontua mais ganha mais horas.</p>
+      </div>
+      <div class="card">
+        <h3>🐺 Membros <span style="margin-left:auto;font-size:11px;color:var(--muted2)" id="memb-count"></span></h3>
+        <div class="row" style="margin-bottom:10px">
+          <div class="fld" style="flex:2"><label>Nome</label><input id="m-nome" placeholder="add manual (ex.: VIP)" onkeydown="if(event.key==='Enter')addMembro()"></div>
+          <div class="fld"><label>Pts %</label><input id="m-pts" type="number" value="100" onkeydown="if(event.key==='Enter')addMembro()"></div>
+          <button class="btn" onclick="addMembro()">+</button>
+        </div>
+        <div class="memb-tools">
+          <input id="m-busca" placeholder="🔎 buscar membro..." oninput="renderMembros()">
+          <select id="m-ordem" onchange="renderMembros()">
+            <option value="pontos">↓ pontos</option><option value="nome">A-Z</option><option value="horas">↓ horas escaladas</option>
+          </select>
+        </div>
+        <div class="memb-list" id="lista-memb"></div>
+        <p class="hint">Clique num membro pra <b>selecioná-lo</b>, depois pinte na grade (clique e arraste).</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="seg">
+          <div class="opt on" id="md-pref" onclick="setMode('pref')">🟡 Disponibilidade</div>
+          <div class="opt" id="md-atrib" onclick="setMode('atrib')">📌 Escalar na lista</div>
+        </div>
+        <div class="info-bar" id="export-link"></div>
+        <div class="row" style="margin-bottom:10px;align-items:center">
+          <span id="sel-info" class="toolbar-info">Selecione um membro à esquerda.</span>
+          <button class="btn" onclick="gerarAuto()">⚡ Gerar automático</button>
+          <button class="btn send" onclick="enviarProSistema()">🚀 Enviar pro sistema</button>
+        </div>
+        <div class="row" style="margin-bottom:12px;align-items:center">
+          <span class="toolbar-info">🧩 Preencher <b>casas vazias</b> com o membro selecionado:</span>
+          <button class="btn outline sm" onclick="preencherVazias(false)">Nesta lista</button>
+          <button class="btn outline sm" onclick="preencherVazias(true)">Em todas</button>
+          <button class="btn ghost sm" onclick="exportarCSV()">📤 CSV</button>
+          <button class="btn ghost sm" onclick="exportarExcel()">📅 Excel</button>
+          <button class="btn ghost sm" onclick="limparEscala()">Limpar</button>
+        </div>
+        <div class="legenda">Plataforma: <span class="lp kick">Kick</span><span class="lp twitch">Twitch</span><span class="lp youtube">YouTube</span><span class="lp outro">Outra</span><span class="lp pref">disponível</span></div>
+        <div class="tabs" id="tabs"></div>
+        <div class="grade-wrap"><div id="grade"></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>📊 Distribuição</h3>
+        <div class="dsum" id="dsum">—</div>
+        <div id="dist"></div>
+        <p class="hint">Listas <b>I–IV</b>: automático por igual (quem tem menos horas tem prioridade). Listas <b>⭐ V e VI</b>: VIP, à mão — o "Gerar automático" não toca nelas.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">TGT · The Golden Team · painel admin 🦅</div>
+</div>
+
+<div id="toasts"></div>
+<div id="modal"><div class="modal-box"><p id="modal-msg"></p><div class="row"><button class="btn ghost" onclick="_modalResp(false)">Cancelar</button><button class="btn" id="modal-ok" onclick="_modalResp(true)">Confirmar</button></div></div></div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  const DIAS = ['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+  const SLOTS = ['A','B','C','D','E','F'];
+  const AUTO_SLOTS = ['A','B','C','D'];
+  const VIP_SLOTS = ['E','F'];
+  const romano = s => ({A:'I',B:'II',C:'III',D:'IV',E:'V',F:'VI'}[s]||s);
+  function novaEscala(){ const o={}; SLOTS.forEach(s=>o[s]={}); return o; }
+  let membros = [], escala = novaEscala();
+  let selIdx = -1, modo = 'pref', slotSel = 'A', pintando=false, pintMode=true;
+
+  const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  let adminToken = null;
+
+  function toast(msg,tipo){ const t=document.createElement('div'); t.className='toast '+(tipo||''); t.innerHTML=msg; document.getElementById('toasts').appendChild(t);
+    setTimeout(()=>{ t.style.transition='opacity .3s,transform .3s'; t.style.opacity='0'; t.style.transform='translateX(40px)'; setTimeout(()=>t.remove(),300); }, 3200); }
+  let _modalCb=null;
+  function modalConfirm(msg,okTxt){ return new Promise(res=>{ _modalCb=res; document.getElementById('modal-msg').innerHTML=msg; document.getElementById('modal-ok').textContent=okTxt||'Confirmar'; document.getElementById('modal').classList.add('on'); }); }
+  function _modalResp(v){ document.getElementById('modal').classList.remove('on'); if(_modalCb){ _modalCb(v); _modalCb=null; } }
+  async function sair(){ await sb.auth.signOut(); location.href='admin.html'; }
+
+  // ---------- dados do banco ----------
+  async function carregarDoBanco(){
+    const st=document.getElementById('imp-status'); st.textContent='⏳ Puxando do banco...';
+    const {data:perfis,error}=await sb.from('profiles').select('user_id,nick,link');
+    if(error){ st.textContent='Erro: '+error.message; toast('Erro ao puxar do banco.','err'); return; }
+    const {data:disps}=await sb.from('disponibilidade').select('user_id,prefs');
+    const pByUser={}; (disps||[]).forEach(d=>pByUser[d.user_id]=new Set(Array.isArray(d.prefs)?d.prefs:[]));
+    membros = (perfis||[]).map(p=>({ nome:p.nick, pontos:0, prefs:pByUser[p.user_id]||new Set(), link:p.link||('https://kick.com/'+p.nick) }));
+    selIdx=-1; renderMembros(); renderGrade(); renderTabs(); renderDist(); updateStats();
+    const comH=membros.filter(m=>m.prefs.size>0).length;
+    st.innerHTML=`✅ <b>${membros.length}</b> streamers no banco · <b>${comH}</b> já marcaram disponibilidade. Agora importe a pontuação.`;
+    toast(`✅ ${membros.length} streamers puxados.`,'ok');
+  }
+  async function importarPontuacao(){
+    if(!membros.length){ toast('Puxe os streamers do banco primeiro.','warn'); return; }
+    const f=document.getElementById('f-pontuacao').files[0];
+    if(!f){ toast('Selecione a planilha de pontuação.','warn'); return; }
+    if(typeof XLSX==='undefined'){ toast('Leitor de Excel não carregou (sem internet?).','err'); return; }
+    try{
+      const wbP=await lerXlsx(f);
+      const pontos={};
+      for(const row of rowsDe(wbP).slice(1)){
+        for(const [ni,pi] of [[1,2],[5,6],[9,10]]){
+          const raw=String(row[ni]||'').trim(); const key=normNick(raw);
+          if(!key || /nick|posi[çc][ãa]o|canal/i.test(raw)) continue;
+          const pct=parseFloat(String(row[pi]||'').replace('%','').replace(',','.'))||0;
+          pontos[key]=pct;
+        }
+      }
+      let n=0; membros.forEach(m=>{ const k=normNick(m.nome); if(pontos[k]!=null){ m.pontos=Math.round(pontos[k]*100)/100; n++; } });
+      renderMembros(); renderDist();
+      document.getElementById('imp-status').innerHTML=`✅ Pontuação aplicada a <b>${n}</b> streamers.`;
+      toast(`✅ Pontuação aplicada a ${n}.`,'ok');
+    }catch(e){ toast('Erro: '+e.message,'err'); }
+  }
+
+  // ---------- faixas ----------
+  let TIERS = [{min:60,h:1},{min:70,h:2},{min:87,h:3},{min:96,h:4}];
+  function lerTiers(){ const t=[]; for(let i=0;i<4;i++){ const min=parseFloat(document.getElementById('t-min-'+i).value); const h=parseInt(document.getElementById('t-h-'+i).value); if(!isNaN(min)&&!isNaN(h)&&h>0) t.push({min,h}); } if(t.length) TIERS=t; renderMembros(); renderDist(); }
+  function tierHoras(pct){ let h=0; for(const t of [...TIERS].sort((a,b)=>a.min-b.min)){ if(pct>=t.min) h=t.h; } return h; }
+  function meta(){ return Math.min(...TIERS.map(t=>t.min)); }
+  function qualificado(m){ return tierHoras(m.pontos) >= 1; }
+
+  function inicial(nome){ const p=String(nome||'?').replace(/^https?:\/\/.*\//,'').trim().split(/[\s_.-]+/).filter(Boolean); return ((p[0]||'?')[0]+(p[1]?p[1][0]:'')).toUpperCase(); }
+  function plataformaDe(nome){ const l=linkDe(nome).toLowerCase(); if(l.includes('twitch.tv'))return'twitch'; if(l.includes('youtube.com')||l.includes('youtu.be'))return'youtube'; if(l.includes('kick.com'))return'kick'; return'outro'; }
+  function horasDe(nome){ let n=0; SLOTS.forEach(s=>{ for(const k in escala[s]) if(escala[s][k]===nome) n++; }); return n; }
+
+  function addMembro(){
+    const nome=document.getElementById('m-nome').value.trim(); const pts=parseFloat(document.getElementById('m-pts').value)||0;
+    if(!nome) return;
+    if(membros.some(m=>m.nome.toLowerCase()===nome.toLowerCase())){ toast('Já existe um membro com esse nome.','warn'); return; }
+    membros.push({ nome, pontos:pts, prefs:new Set(), link:'https://kick.com/'+nome });
+    document.getElementById('m-nome').value=''; document.getElementById('m-nome').focus();
+    selIdx=membros.length-1; renderMembros(); renderGrade(); updateStats();
+  }
+  function rmMembro(i,ev){ ev.stopPropagation(); const nome=membros[i].nome;
+    SLOTS.forEach(s=>{ for(const k in escala[s]) if(escala[s][k]===nome) delete escala[s][k]; });
+    const sel=selIdx>=0?membros[selIdx]:null; membros.splice(i,1); selIdx = sel&&sel!==membros[i]?membros.indexOf(sel):-1;
+    renderMembros(); renderGrade(); renderDist(); updateStats(); }
+  function selMembro(i){ selIdx=(selIdx===i?-1:i); renderMembros(); renderGrade(); }
+  function setMode(m){ modo=m; document.getElementById('md-pref').classList.toggle('on',m==='pref'); document.getElementById('md-atrib').classList.toggle('on',m==='atrib'); atualizaSelInfo(); renderGrade(); }
+  function selSlot(s){ slotSel=s; renderTabs(); renderGrade(); }
+  function atualizaSelInfo(){ const el=document.getElementById('sel-info');
+    if(slotSel==='RESUMO'){ el.innerHTML='📊 <b>Resumo</b> — mapa de calor: quantas das 6 listas estão preenchidas em cada hora.'; return; }
+    if(selIdx<0){ el.innerHTML='Selecione um membro à esquerda.'; return; }
+    const m=membros[selIdx];
+    el.innerHTML = modo==='pref' ? `Vendo <b>disponibilidade</b> de <b style="color:var(--gold)">${m.nome}</b> (o que ele marcou no app).`
+      : `Escalando <b style="color:var(--gold)">${m.nome}</b> na Lista ${romano(slotSel)} — clique/arraste as células.`; }
+
+  function renderMembros(){
+    const box=document.getElementById('lista-memb');
+    const busca=(document.getElementById('m-busca').value||'').toLowerCase().trim();
+    const ordem=document.getElementById('m-ordem').value;
+    document.getElementById('memb-count').textContent = membros.length ? membros.length+' no total' : '';
+    if(!membros.length){ box.innerHTML='<div class="hint">Clique em <b>↻ Puxar disponibilidades do banco</b> acima.</div>'; atualizaSelInfo(); return; }
+    let arr=membros.map((m,i)=>({m,i}));
+    if(busca) arr=arr.filter(x=>x.m.nome.toLowerCase().includes(busca));
+    arr.sort((a,b)=> ordem==='nome'?a.m.nome.localeCompare(b.m.nome): ordem==='horas'?horasDe(b.m.nome)-horasDe(a.m.nome): b.m.pontos-a.m.pontos);
+    box.innerHTML = arr.map(({m,i})=>{ const q=qualificado(m); const th=tierHoras(m.pontos); const fe=horasDe(m.nome); const pct=th>0?Math.min(100,Math.round(fe/th*100)):0; const pl=plataformaDe(m.nome);
+      return `<div class="memb ${i===selIdx?'sel':''} ${q?'':'naoq'}" onclick="selMembro(${i})" title="${m.nome} — ${m.pontos}% — ${fe}/${th}h">
+        <div class="ava ${pl}">${inicial(m.nome)}</div>
+        <div class="memb-info"><div class="nm">${m.nome}</div><div class="meta"><span class="pt">${m.pontos}%</span>
+          ${q?`<span class="qbadge">${fe}/${th}h</span><div class="prog ${fe>=th?'full':''}"><i style="width:${pct}%"></i></div>`:'<span style="font-size:10px;color:#c77">não qualifica</span>'}</div></div>
+        <span class="x" onclick="rmMembro(${i},event)" title="remover">✕</span></div>`; }).join('');
+    atualizaSelInfo();
+  }
+  function renderTabs(){
+    let h=SLOTS.map(s=>{ const n=Object.keys(escala[s]).length; const vip=VIP_SLOTS.includes(s);
+      return `<div class="tab ${vip?'vip':''} ${s===slotSel?'on':''}" onclick="selSlot('${s}')">${vip?'⭐ ':''}Lista ${romano(s)}<span class="cnt">${n}</span></div>`; }).join('');
+    h+=`<div class="tab resumo ${slotSel==='RESUMO'?'on':''}" onclick="selSlot('RESUMO')">📊 Resumo</div>`;
+    document.getElementById('tabs').innerHTML=h;
+  }
+  function renderGrade(){
+    const nd=(new Date().getDay()+6)%7, nh=new Date().getHours();
+    if(slotSel==='RESUMO'){ renderResumo(nd,nh); return; }
+    const m=selIdx>=0?membros[selIdx]:null;
+    let h='<table><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th class="${i===nd?'now-col':''}" onclick="selDia(${i})">${d}</th>`).join('')+'</tr></thead><tbody>';
+    for(let hora=0;hora<24;hora++){ const dawn=hora<7;
+      h+=`<tr class="${hora===nh?'now-row':''}"><td class="hcol" onclick="selHora(${hora})">${String(hora).padStart(2,'0')}:00</td>`;
+      for(let d=0;d<7;d++){ const k=d+'-'+hora; const dono=escala[slotSel][k]; const cls=['cell']; if(dono){cls.push('has');cls.push(plataformaDe(dono));} if(m&&m.prefs.has(k))cls.push('pref');
+        const tdcls=[]; if(dawn)tdcls.push('dawn'); if(d===nd)tdcls.push('now-col-cell'); const txt=dono||'<span class=dim>·</span>';
+        h+=`<td class="${tdcls.join(' ')}" onmousedown="cellDown('${k}',event)" onmouseenter="cellEnter('${k}')"><div class="${cls.join(' ')}">${txt}</div></td>`; }
+      h+='</tr>'; }
+    document.getElementById('grade').innerHTML=h+'</tbody></table>';
+  }
+  function corHeat(n){ if(n===0)return'rgba(255,80,80,.18)'; const c=['','#7a2a2a','#9c5a1e','#b89020','#8aa01e','#4faa2e','#2ecc71']; return c[n]||'#2ecc71'; }
+  function renderResumo(nd,nh){
+    let h='<table><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th class="${i===nd?'now-col':''}">${d}</th>`).join('')+'</tr></thead><tbody>';
+    for(let hora=0;hora<24;hora++){ h+=`<tr class="${hora===nh?'now-row':''}"><td class="hcol">${String(hora).padStart(2,'0')}:00</td>`;
+      for(let d=0;d<7;d++){ const k=d+'-'+hora; let n=0; SLOTS.forEach(s=>{ if(escala[s][k])n++; }); const cor=corHeat(n); const tc=n>=4?'#04210f':'#f6ecd0';
+        h+=`<td title="${n}/6 listas em ${DIAS[d]} ${String(hora).padStart(2,'0')}:00"><div class="heat" style="background:${cor};color:${tc}">${n}</div></td>`; }
+      h+='</tr>'; }
+    document.getElementById('grade').innerHTML=h+'</tbody></table>';
+  }
+  function aplicaCelula(k){ if(slotSel==='RESUMO'||selIdx<0)return; const m=membros[selIdx];
+    if(modo==='pref'){ if(pintMode)m.prefs.add(k); else m.prefs.delete(k); } else { if(pintMode)escala[slotSel][k]=m.nome; else if(escala[slotSel][k]===m.nome)delete escala[slotSel][k]; } }
+  function cellDown(k,e){ e.preventDefault(); if(slotSel==='RESUMO')return; if(selIdx<0){toast('Selecione um membro primeiro.','warn');return;} pintando=true; const m=membros[selIdx];
+    pintMode = modo==='pref' ? !m.prefs.has(k) : (escala[slotSel][k]!==m.nome); aplicaCelula(k); renderGrade(); }
+  function cellEnter(k){ if(pintando){ aplicaCelula(k); renderGrade(); } }
+  document.addEventListener('mouseup',()=>{ if(pintando){ pintando=false; renderTabs(); renderDist(); updateStats(); if(document.getElementById('m-ordem').value==='horas') renderMembros(); } });
+  function selDia(d){ if(slotSel==='RESUMO'||selIdx<0)return; pintMode=true; for(let h=0;h<24;h++)aplicaCelula(d+'-'+h); renderGrade(); renderTabs(); renderDist(); updateStats(); }
+  function selHora(h){ if(slotSel==='RESUMO'||selIdx<0)return; pintMode=true; for(let d=0;d<7;d++)aplicaCelula(d+'-'+h); renderGrade(); renderTabs(); renderDist(); updateStats(); }
+
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+  function gerarAuto(){
+    const qual=membros.filter(qualificado);
+    if(!qual.length){ toast('Ninguém qualificado (pontuação ≥ '+meta()+'%). Importe a pontuação.','warn'); return; }
+    const quota={}, horas={}; qual.forEach(m=>{ quota[m.nome]=tierHoras(m.pontos); horas[m.nome]=0; });
+    AUTO_SLOTS.forEach(s=>escala[s]={});
+    const cel=[]; for(let d=0;d<7;d++)for(let h=0;h<24;h++)cel.push([d,h]); shuffle(cel);
+    for(const [d,h] of cel){ const k=d+'-'+h; const usados=new Set();
+      for(const s of shuffle([...AUTO_SLOTS])){
+        const cands=qual.filter(m=>m.prefs.has(k)&&horas[m.nome]<quota[m.nome]&&!usados.has(m.nome));
+        if(!cands.length) continue;
+        cands.sort((a,b)=> ((quota[b.nome]-horas[b.nome])-(quota[a.nome]-horas[a.nome]))||(horas[a.nome]-horas[b.nome])||(Math.random()-0.5));
+        const best=cands[0]; escala[s][k]=best.nome; usados.add(best.nome); horas[best.nome]++;
+      } }
+    renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats();
+    let total=0; AUTO_SLOTS.forEach(s=>total+=Object.keys(escala[s]).length);
+    toast(`⚡ Escala gerada — <b>${total}</b> lives nas listas I–IV (V e VI são VIP, à mão).`,'ok');
+  }
+  async function preencherVazias(todas){
+    if(selIdx<0){ toast('Selecione um membro primeiro.','warn'); return; }
+    const nome=membros[selIdx].nome; const alvos=todas?SLOTS:[slotSel==='RESUMO'?'A':slotSel];
+    if(todas && !(await modalConfirm(`Preencher TODAS as casas vazias das 6 listas com "<b>${nome}</b>"?`,'Preencher'))) return;
+    let n=0; for(const s of alvos) for(let d=0;d<7;d++) for(let h=0;h<24;h++){ const k=d+'-'+h; if(!escala[s][k]){ escala[s][k]=nome; n++; } }
+    renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats(); toast(`✅ ${n} casas preenchidas com "${nome}".`,'ok');
+  }
+  function limparEscala(){ escala=novaEscala(); renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats(); toast('Escala limpa.','warn'); }
+
+  function renderDist(){
+    const cont={}; SLOTS.forEach(s=>{ for(const k in escala[s]){ const n=escala[s][k]; cont[n]=(cont[n]||0)+1; } });
+    const arr=Object.entries(cont).sort((a,b)=>b[1]-a[1]); const dsum=document.getElementById('dsum');
+    if(!arr.length){ dsum.textContent='Nenhum horário preenchido.'; document.getElementById('dist').innerHTML=''; return; }
+    const tot=arr.reduce((s,x)=>s+x[1],0), med=(tot/arr.length).toFixed(1); const mn=Math.min(...arr.map(x=>x[1])), mx=Math.max(...arr.map(x=>x[1]));
+    dsum.innerHTML=`<b>${arr.length}</b> lobos · média <b>${med}h</b> (${mn}–${mx}) · <b>${tot}</b> horários · ${SLOTS.length} listas`;
+    document.getElementById('dist').innerHTML=arr.map(([n,t])=>{ const pl=plataformaDe(n); return `<div class="drow"><div class="ava ${pl}">${inicial(n)}</div><span class="u">${n}</span><span class="t">${t}h</span></div>`; }).join('');
+  }
+  function updateStats(){ document.getElementById('st-membros').textContent=membros.length; let lives=0; SLOTS.forEach(s=>lives+=Object.keys(escala[s]).length); document.getElementById('st-lives').textContent=lives; document.getElementById('st-cob').textContent=Math.round(lives/(7*24*SLOTS.length)*100)+'%'; }
+
+  function lerXlsx(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>{ try{res(XLSX.read(e.target.result,{type:'array'}));}catch(err){rej(err);} }; r.onerror=()=>rej(new Error('falha ao ler '+file.name)); r.readAsArrayBuffer(file); }); }
+  function rowsDe(wb){ const ws=wb.Sheets[wb.SheetNames[0]]; return XLSX.utils.sheet_to_json(ws,{header:1,defval:''}); }
+  function normNick(s){ s=String(s||'').trim().toLowerCase(); if(!s)return''; const m=s.match(/(?:kick\.com|twitch\.tv|youtube\.com|tiktok\.com)\/@?([^\/\s?]+)/); if(m)s=m[1]; return s.replace(/^@/,'').trim().replace(/\/+$/,''); }
+
+  // ---------- enviar (via proxy serverless, evita http/https) ----------
+  function montaDataHora(dataIni){ const base=new Date(dataIni+'T00:00:00'); const p2=n=>String(n).padStart(2,'0'); return (dia,hora)=>{ const d=new Date(base.getTime()); d.setDate(d.getDate()+dia); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())} ${p2(hora)}:00:00`; }; }
+  async function enviarProSistema(){
+    const box=document.getElementById('export-link'); box.style.display='block';
+    const dataIni=document.getElementById('p-data').value;
+    if(!dataIni){ box.innerHTML='⚠️ Escolha a <b>data de início (segunda)</b>.'; return; }
+    let total=0; SLOTS.forEach(s=>total+=Object.keys(escala[s]).length);
+    if(!total){ box.innerHTML='⚠️ Escala vazia — gere antes de enviar.'; return; }
+    const senha=prompt('Senha de envio (a do salvar_lives.php no thegoldenteam):'); if(senha===null) return;
+    const dataHora=montaDataHora(dataIni); const listas={};
+    SLOTS.forEach(s=>{ const arr=[]; let id=0; for(let dia=0;dia<7;dia++)for(let h=0;h<24;h++){ const nick=escala[s][dia+'-'+h]; if(!nick)continue; id++;
+      arr.push({ item:id, Descricao:nick, Datahorario:dataHora(dia,h), Tipo:'2 -Executar Live Programada', Complemento:linkDe(nick), Status:'1 -Live Agendada', Refresh:'20' }); } listas['lives_'+s.toLowerCase()]=arr; });
+    box.innerHTML='⏳ Enviando pro sistema TGT...';
+    try{
+      const resp=await fetch('/api/enviar-lives',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ token:adminToken, senha, semana_inicio:dataIni, listas }) });
+      const txt=await resp.text(); let j=null; try{j=JSON.parse(txt);}catch(e){}
+      if(resp.ok && j && j.success){ const det=Object.entries(j.gravadas||{}).map(([k,v])=>`${k.toUpperCase().replace('LIVES_','Lista ')}: ${v}`).join(' · ');
+        box.innerHTML=`✅ <b>Enviado!</b> O app já vai ler na próxima atualização.<br><span style="color:var(--muted);font-size:12px">${det}</span>`; toast('🚀 Listas enviadas pro sistema!','ok'); }
+      else { box.innerHTML=`⚠️ ${(j&&j.error)||('Erro '+resp.status)}.<br><span style="color:var(--muted);font-size:12px">${(j&&j.raw)||txt.slice(0,200)}</span>`; toast('Servidor recusou o envio.','err'); }
+    }catch(e){ box.innerHTML='⚠️ Falha: '+e.message; toast('Falha no envio.','err'); }
+  }
+
+  // ---------- exportar ----------
+  let _csvUrls=[];
+  function linkDe(nick){ const m=membros.find(x=>x.nome===nick); return (m&&m.link)||('https://kick.com/'+nick); }
+  function csvEsc(v){ v=String(v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+  function exportarCSV(){
+    const box=document.getElementById('export-link'); box.style.display='block';
+    const dataIni=document.getElementById('p-data').value;
+    if(!dataIni){ box.innerHTML='⚠️ Escolha a <b>data de início (segunda)</b>.'; return; }
+    let total=0; SLOTS.forEach(s=>total+=Object.keys(escala[s]).length); if(!total){ box.innerHTML='⚠️ Escala vazia.'; return; }
+    const dataHora=montaDataHora(dataIni); _csvUrls.forEach(u=>URL.revokeObjectURL(u)); _csvUrls=[];
+    const base_nome=(document.querySelector('h1').textContent||'TGT').trim().replace(/[^\wÀ-ÿ ]+/g,'').trim()||'TGT';
+    let html='✅ <b>6 listas</b> (formato TGT) — clique pra baixar:<br><div style="margin-top:6px;display:flex;flex-direction:column;gap:4px">';
+    SLOTS.forEach(s=>{ const rows=[]; let id=0; for(let dia=0;dia<7;dia++)for(let h=0;h<24;h++){ const nick=escala[s][dia+'-'+h]; if(!nick)continue; id++; rows.push([id,nick,dataHora(dia,h),'2 -Executar Live Programada',linkDe(nick),'1 -Live Agendada',20]); }
+      const csv=rows.map(r=>r.map(csvEsc).join(',')).join('\r\n'); const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); _csvUrls.push(url);
+      const nome=`${base_nome} - LISTA ${romano(s)}.csv`; html+=`<a href="${url}" download="${nome}" style="color:var(--gold);font-weight:800;text-decoration:underline">⬇️ Lista ${romano(s)} — ${rows.length} lives</a>`; });
+    box.innerHTML=html+'</div>';
+  }
+  function nomeBase(){ return (document.querySelector('h1').textContent||'TGT').trim().replace(/[^\wÀ-ÿ ]+/g,'').trim()||'TGT'; }
+  function exportarExcel(){
+    const box=document.getElementById('export-link'); box.style.display='block';
+    if(typeof XLSX==='undefined'){ box.innerHTML='⚠️ Leitor de Excel não carregou.'; return; }
+    let total=0; SLOTS.forEach(s=>total+=Object.keys(escala[s]).length); if(!total){ box.innerHTML='⚠️ Escala vazia.'; return; }
+    const wb=XLSX.utils.book_new();
+    SLOTS.forEach(s=>{ const aoa=[['Hora',...DIAS]]; for(let h=0;h<24;h++){ const row=[String(h).padStart(2,'0')+':00']; for(let d=0;d<7;d++)row.push(escala[s][d+'-'+h]||''); aoa.push(row); }
+      const ws=XLSX.utils.aoa_to_sheet(aoa); ws['!cols']=[{wch:7},...DIAS.map(()=>({wch:16}))]; XLSX.utils.book_append_sheet(wb,ws,'LISTA '+romano(s)); });
+    const cont={}; SLOTS.forEach(s=>{ for(const k in escala[s]){ const n=escala[s][k]; cont[n]=(cont[n]||0)+1; } });
+    const dist=[['Membro','Horas','Pontuação %','Cota']].concat(Object.entries(cont).sort((a,b)=>b[1]-a[1]).map(([n,t])=>{ const m=membros.find(x=>x.nome===n); return [n,t,m?m.pontos:'',m?tierHoras(m.pontos):'']; }));
+    const wsd=XLSX.utils.aoa_to_sheet(dist); wsd['!cols']=[{wch:22},{wch:7},{wch:12},{wch:6}]; XLSX.utils.book_append_sheet(wb,wsd,'DISTRIBUICAO');
+    const nome=nomeBase()+' - calendario.xlsx'; XLSX.writeFile(wb,nome); box.innerHTML=`✅ Excel <b>${nome}</b> baixado.`; toast('📅 Excel baixado.','ok');
+  }
+
+  // ---------- init (com trava de admin) ----------
+  (function(){ const d=new Date(); const off=(d.getDay()+6)%7; d.setDate(d.getDate()-off); document.getElementById('p-data').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+  (async()=>{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session || session.user.email!==window.ADMIN_EMAIL){ location.href='admin.html'; return; }
+    adminToken=session.access_token;
+    renderMembros(); renderTabs(); renderGrade(); renderDist(); updateStats();
+    carregarDoBanco();
+  })();
+</script>
+</body>
+</html>

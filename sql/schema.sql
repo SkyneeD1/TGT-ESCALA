@@ -5,7 +5,7 @@
 -- =====================================================================
 
 -- Quem é o admin (o login que pode ver todo mundo e criar usuários).
--- Mantemos 'admin@tgt.local'. Se mudar aqui, mude também no Vercel (ADMIN_EMAIL).
+-- Mantemos 'admin@tgt.com'. Se mudar aqui, mude também no Vercel (ADMIN_EMAIL).
 
 -- ---------- tabelas ----------
 create table if not exists profiles (
@@ -29,7 +29,7 @@ alter table disponibilidade enable row level security;
 -- PROFILES
 drop policy if exists p_sel on profiles;
 create policy p_sel on profiles for select
-  using ( auth.uid() = user_id or auth.email() = 'admin@tgt.local' );
+  using ( auth.uid() = user_id or auth.email() = 'admin@tgt.com' );
 drop policy if exists p_ins on profiles;
 create policy p_ins on profiles for insert
   with check ( auth.uid() = user_id );
@@ -40,7 +40,7 @@ create policy p_upd on profiles for update
 -- DISPONIBILIDADE
 drop policy if exists d_sel on disponibilidade;
 create policy d_sel on disponibilidade for select
-  using ( auth.uid() = user_id or auth.email() = 'admin@tgt.local' );
+  using ( auth.uid() = user_id or auth.email() = 'admin@tgt.com' );
 drop policy if exists d_ins on disponibilidade;
 create policy d_ins on disponibilidade for insert
   with check ( auth.uid() = user_id );
@@ -52,6 +52,6 @@ create policy d_upd on disponibilidade for update
 -- Depois de rodar isto:
 -- 1) Authentication > Providers > Email: DESLIGUE "Confirm email".
 -- 2) Authentication > Users > Add user:
---       email: admin@tgt.local   senha: (escolha)   marque "Auto confirm".
+--       email: admin@tgt.com   senha: (escolha)   marque "Auto confirm".
 --    Esse é o seu login de administrador.
 -- =====================================================================

@@ -36,7 +36,7 @@
 
   <!-- LOGIN ADMIN -->
   <div id="view-login" class="login-box">
-    <div style="text-align:center;margin-bottom:14px"><h1>🛠️ Admin — Escala Dourada</h1><p class="sub">Acesso do administrador</p></div>
+    <div style="text-align:center;margin-bottom:14px"><img src="logo.png" alt="TGT" style="height:88px;filter:drop-shadow(0 4px 14px rgba(255,180,0,.35))"><h1 style="margin-top:8px">Admin — Escala Dourada</h1><p class="sub">Acesso do administrador</p></div>
     <div class="card">
       <label>E-mail do admin</label>
       <input id="l-email" value="admin@tgt.com" onkeydown="if(event.key==='Enter')entrar()">
@@ -49,9 +49,9 @@
 
   <!-- APP ADMIN -->
   <div id="view-app" class="hidden">
-    <div class="toprow"><div class="who">Admin: <b id="ap-email">—</b></div><button class="btn ghost" onclick="sair()">Sair</button></div>
+    <div class="toprow"><img src="logo.png" alt="TGT" style="height:44px"><div class="who">Admin: <b id="ap-email">—</b></div><button class="btn" onclick="location.href='escala.html'">🗓️ Montar escala</button><button class="btn ghost" onclick="sair()">Sair</button></div>
     <h1>🛠️ Painel do Admin</h1>
-    <p class="sub">Crie os logins dos streamers e acompanhe quem já marcou disponibilidade.</p>
+    <p class="sub">Crie os logins dos streamers e acompanhe quem já marcou disponibilidade. Quando todos preencherem, clique em <b>🗓️ Montar escala</b>.</p>
 
     <div class="card">
       <h3>➕ Criar streamer</h3>
