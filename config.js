@@ -7,4 +7,4 @@
 // ====================================================================
 window.SUPABASE_URL  = "https://qwzcgsgiuolmjkivhakk.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_5qXNvKr_uvL1k2BqiQ5evw_TSy8sRXC";
-window.ADMIN_EMAIL = "admin@tgt.local"; // mesmo do schema.sql
+window.ADMIN_EMAIL = "admin@tgt.com"; // mesmo do schema.sql
