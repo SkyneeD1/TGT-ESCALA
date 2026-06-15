@@ -144,7 +144,7 @@
   }
   async function deletarUsuario(id,nick){
     if(!confirm('EXCLUIR "'+nick+'" de vez? Apaga o login E a disponibilidade dele. Não dá pra desfazer.')) return;
-    const r=await fetch('/api/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,user_id:id})});
+    const r=await fetch('/api/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,user_id:id,nick})});
     const j=await r.json(); if(!r.ok){ alert('Erro: '+(j.error||r.status)); return; }
     carregarLista();
   }
