@@ -136,7 +136,7 @@
       </div>
     </div>
     <div class="stats">
-      <div class="stat"><div class="n" id="st-membros">0</div><div class="l">Lobos</div></div>
+      <div class="stat"><div class="n" id="st-membros">0</div><div class="l">TGTS</div></div>
       <div class="stat"><div class="n" id="st-lives">0</div><div class="l">Lives</div></div>
       <div class="stat"><div class="n" id="st-cob">0%</div><div class="l">Cobertura</div></div>
     </div>
@@ -171,7 +171,7 @@
         <p class="hint">Abaixo da menor faixa não entra. Quem pontua mais ganha mais horas.</p>
       </div>
       <div class="card">
-        <h3>🐺 Membros <span style="margin-left:auto;font-size:11px;color:var(--muted2)" id="memb-count"></span></h3>
+        <h3>👥 Membros <span style="margin-left:auto;font-size:11px;color:var(--muted2)" id="memb-count"></span></h3>
         <div class="row" style="margin-bottom:10px">
           <div class="fld" style="flex:2"><label>Nome</label><input id="m-nome" placeholder="add manual (ex.: VIP)" onkeydown="if(event.key==='Enter')addMembro()"></div>
           <div class="fld"><label>Pts %</label><input id="m-pts" type="number" value="100" onkeydown="if(event.key==='Enter')addMembro()"></div>
@@ -439,7 +439,7 @@
     const arr=Object.entries(cont).sort((a,b)=>b[1]-a[1]); const dsum=document.getElementById('dsum');
     if(!arr.length){ dsum.textContent='Nenhum horário preenchido.'; document.getElementById('dist').innerHTML=''; return; }
     const tot=arr.reduce((s,x)=>s+x[1],0), med=(tot/arr.length).toFixed(1); const mn=Math.min(...arr.map(x=>x[1])), mx=Math.max(...arr.map(x=>x[1]));
-    dsum.innerHTML=`<b>${arr.length}</b> lobos · média <b>${med}h</b> (${mn}–${mx}) · <b>${tot}</b> horários · ${SLOTS.length} listas`;
+    dsum.innerHTML=`<b>${arr.length}</b> TGTS · média <b>${med}h</b> (${mn}–${mx}) · <b>${tot}</b> horários · ${SLOTS.length} listas`;
     document.getElementById('dist').innerHTML=arr.map(([n,t])=>{ const pl=plataformaDe(n); return `<div class="drow"><div class="ava ${pl}">${inicial(n)}</div><span class="u">${n}</span><span class="t">${t}h</span></div>`; }).join('');
   }
   function updateStats(){ document.getElementById('st-membros').textContent=membros.length; let lives=0; SLOTS.forEach(s=>lives+=Object.keys(escala[s]).length); document.getElementById('st-lives').textContent=lives; document.getElementById('st-cob').textContent=Math.round(lives/(7*24*SLOTS.length)*100)+'%'; }

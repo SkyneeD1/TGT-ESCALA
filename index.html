@@ -185,7 +185,7 @@
     if(!dados || !Object.keys(dados).length){ box.innerHTML='<p class="sub">Nenhuma escala publicada ainda. Quando a administração gerar, ela aparece aqui. 🟡</p>'; return; }
     const meus=[];
     SLOTS.forEach(s=>{ const obj=dados[s]||{}; for(const k in obj){ if(String(obj[k]||'').toLowerCase()===meuNick.toLowerCase()){ const [d,h]=k.split('-').map(Number); meus.push({s,d,h}); } } });
-    if(!meus.length){ box.innerHTML='<p class="sub">Você não foi escalado nesta semana. 🐺</p>'; return; }
+    if(!meus.length){ box.innerHTML='<p class="sub">Você não foi escalado nesta semana.</p>'; return; }
     meus.sort((a,b)=> a.d-b.d || a.h-b.h || a.s.localeCompare(b.s));
     const base = data.semana_inicio ? new Date(data.semana_inicio+'T00:00:00') : null;
     const p2=n=>String(n).padStart(2,'0');
