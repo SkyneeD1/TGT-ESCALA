@@ -39,6 +39,19 @@
   td .cell.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;font-weight:800;border-radius:7px;margin:2px}
   td .cell:hover{background:rgba(255,210,74,.08)}
   td.dawn{background:rgba(0,0,0,.18)} .dim{color:#5b4f30}
+  thead th.now-col{color:var(--gold)}
+  .tabs{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+  .tab{padding:7px 13px;border-radius:999px;border:1px solid var(--border);background:rgba(0,0,0,.22);color:var(--muted);font-weight:700;cursor:pointer;font-size:13px}
+  .tab.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;border-color:transparent}
+  .tab.vip.on{background:linear-gradient(100deg,#b8860b,#ffd24a);color:#3a2a00}
+  .tab .cnt{font-size:10px;opacity:.8;margin-left:5px;font-family:'Consolas',monospace}
+  td .cell.has{color:#3a2a00;font-weight:700;border-radius:7px;margin:2px;min-height:26px;font-size:10px;padding:2px 1px;line-height:1.1;cursor:default}
+  td .cell.has.kick{background:linear-gradient(100deg,#0b8a3e,#2ecc71);color:#04210f}
+  td .cell.has.twitch{background:linear-gradient(100deg,#7a2bd6,#b86bff);color:#fff}
+  td .cell.has.youtube{background:linear-gradient(100deg,#c81d1d,#ff5a5a);color:#fff}
+  td .cell.has.outro{background:linear-gradient(100deg,var(--amber),var(--gold))}
+  td .cell.me{box-shadow:0 0 0 2px #fff inset;border-radius:7px}
+  .btn.foco-on{background:linear-gradient(100deg,#7a2bd6,#b86bff);color:#fff}
   /* minha escala */
   .dia-h{margin:14px 0 6px;font-weight:800;color:var(--gold);font-size:14px;border-bottom:1px solid var(--border);padding-bottom:4px}
   .esc-row{display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(0,0,0,.2);margin-bottom:6px}
@@ -97,8 +110,15 @@
 
     <!-- ABA: minha escala (só leitura) -->
     <div id="aba-esc" class="hidden">
-      <p class="sub">Estas são as lives que a administração escalou pra você. <b>Só leitura</b> — não dá pra editar aqui.</p>
-      <div class="card"><div id="esc-conteudo">Carregando...</div></div>
+      <p class="sub">A escala da semana inteira (só leitura). Ative o <b>🎯 Modo Foco</b> pra esconder os outros e ver só os seus horários.</p>
+      <div class="card">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+          <button class="btn" id="btn-foco" onclick="toggleFoco()">🎯 Modo Foco: OFF</button>
+          <span class="sub" id="esc-info" style="margin:0;flex:1;min-width:160px"></span>
+        </div>
+        <div class="tabs" id="esc-tabs"></div>
+        <div class="grade-wrap"><div id="esc-grade">Carregando...</div></div>
+      </div>
     </div>
 
   </div>
@@ -177,25 +197,46 @@
     msg.style.color='var(--ok)'; msg.textContent='✅ Salvo! ('+prefs.size+' horas marcadas)'; toast('💾 Disponibilidade salva!');
   }
 
+  // ---------- Minha Escala (grade da semana, só leitura, com Modo Foco) ----------
+  let escDados=null, escSlot='A', foco=false;
+  const VIPS=['E','F'];
+  function ehMeu(nick){ return String(nick||'').toLowerCase()===meuNick.toLowerCase(); }
+  function platDe(nick){ const lk=((escDados&&escDados.__links)||{})[nick]||''; const l=String(lk).toLowerCase();
+    if(l.includes('twitch.tv'))return'twitch'; if(l.includes('youtube')||l.includes('youtu.be'))return'youtube'; if(l.includes('kick.com'))return'kick'; return'outro'; }
+  function totalMeus(){ if(!escDados)return 0; let n=0; SLOTS.forEach(s=>{ const o=escDados[s]||{}; for(const k in o) if(ehMeu(o[k])) n++; }); return n; }
+
   async function carregarMinhaEscala(){
-    const box=document.getElementById('esc-conteudo'); box.innerHTML='Carregando...';
+    document.getElementById('esc-grade').innerHTML='Carregando...';
     const {data,error} = await sb.from('escala_pub').select('semana_inicio,dados').eq('id',1).maybeSingle();
-    if(error){ box.innerHTML='<p class="sub">Não consegui carregar a escala ('+error.message+').</p>'; return; }
+    if(error){ document.getElementById('esc-grade').innerHTML='<p class="sub">Não consegui carregar a escala ('+error.message+').</p>'; return; }
     const dados = data && data.dados;
-    if(!dados || !Object.keys(dados).length){ box.innerHTML='<p class="sub">Nenhuma escala publicada ainda. Quando a administração gerar, ela aparece aqui. 🟡</p>'; return; }
-    const meus=[];
-    SLOTS.forEach(s=>{ const obj=dados[s]||{}; for(const k in obj){ if(String(obj[k]||'').toLowerCase()===meuNick.toLowerCase()){ const [d,h]=k.split('-').map(Number); meus.push({s,d,h}); } } });
-    if(!meus.length){ box.innerHTML='<p class="sub">Você não foi escalado nesta semana.</p>'; return; }
-    meus.sort((a,b)=> a.d-b.d || a.h-b.h || a.s.localeCompare(b.s));
-    const base = data.semana_inicio ? new Date(data.semana_inicio+'T00:00:00') : null;
-    const p2=n=>String(n).padStart(2,'0');
-    const dataDia=d=>{ if(!base) return DIAS[d]; const x=new Date(base.getTime()); x.setDate(x.getDate()+d); return `${DIAS[d]} · ${p2(x.getDate())}/${p2(x.getMonth()+1)}`; };
-    let h=`<p class="sub">Você tem <b style="color:var(--gold)">${meus.length}</b> live(s) agendada(s) nesta semana:</p>`;
-    let lastD=-1;
-    meus.forEach(m=>{ if(m.d!==lastD){ h+=`<div class="dia-h">${dataDia(m.d)}</div>`; lastD=m.d; }
-      const vip=['E','F'].includes(m.s);
-      h+=`<div class="esc-row"><span class="esc-hora">${p2(m.h)}:00</span><span class="esc-lista ${vip?'vip':''}">${vip?'⭐ ':''}Lista ${romano(m.s)}</span></div>`; });
-    box.innerHTML=h;
+    if(!dados || !SLOTS.some(s=>dados[s] && Object.keys(dados[s]).length)){
+      escDados=null; document.getElementById('esc-tabs').innerHTML='';
+      document.getElementById('esc-grade').innerHTML='<p class="sub">Nenhuma escala publicada ainda. Quando a administração publicar, ela aparece aqui. 🟡</p>'; return;
+    }
+    escDados=dados; renderEscTabs(); renderEscGrade();
+  }
+  function toggleFoco(){ foco=!foco; const b=document.getElementById('btn-foco'); b.textContent='🎯 Modo Foco: '+(foco?'ON':'OFF'); b.classList.toggle('foco-on',foco); renderEscGrade(); }
+  function selEscSlot(s){ escSlot=s; renderEscTabs(); renderEscGrade(); }
+  function renderEscTabs(){
+    document.getElementById('esc-tabs').innerHTML = SLOTS.map(s=>{ const o=escDados[s]||{}; let n=0; for(const k in o) if(ehMeu(o[k])) n++; const vip=VIPS.includes(s);
+      return `<div class="tab ${vip?'vip':''} ${s===escSlot?'on':''}" onclick="selEscSlot('${s}')">${vip?'⭐ ':''}Lista ${romano(s)}${n?`<span class="cnt">${n} seu(s)</span>`:''}</div>`; }).join('');
+  }
+  function renderEscGrade(){
+    document.getElementById('esc-info').innerHTML = foco
+      ? `Só os <b style="color:var(--gold)">seus</b> horários — ${totalMeus()} live(s) na semana.`
+      : 'Escala completa — os seus aparecem com <b style="color:#fff">borda branca</b>.';
+    const nd=(new Date().getDay()+6)%7;
+    const obj=escDados[escSlot]||{};
+    let h='<table><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th class="${i===nd?'now-col':''}">${d}</th>`).join('')+'</tr></thead><tbody>';
+    for(let hora=0;hora<24;hora++){ const dawn=hora<7;
+      h+=`<tr><td class="hcol">${String(hora).padStart(2,'0')}:00</td>`;
+      for(let d=0;d<7;d++){ const k=d+'-'+hora; const nick=obj[k]; const meu=nick&&ehMeu(nick);
+        let cls='cell', inner='<span class=dim>·</span>';
+        if(nick && (!foco || meu)){ cls='cell has '+platDe(nick)+(meu?' me':''); inner=nick; }
+        h+=`<td class="${dawn?'dawn':''}"><div class="${cls}">${inner}</div></td>`; }
+      h+='</tr>'; }
+    document.getElementById('esc-grade').innerHTML=h+'</tbody></table>';
   }
 
   (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) carregarApp(); })();
