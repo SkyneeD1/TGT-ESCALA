@@ -95,7 +95,7 @@
   let pintando=false, pintMode=true, user=null, meuNick='';
 
   function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2600); }
-  const emailDe = nick => nick.toLowerCase().trim()+'@tgt.local';
+  const emailDe = nick => nick.toLowerCase().trim()+'@tgt.com';
 
   async function entrar(){
     const nick=document.getElementById('l-nick').value.trim();
@@ -115,7 +115,7 @@
     user=u;
     // perfil
     const {data:perf} = await sb.from('profiles').select('nick,link').eq('user_id',u.id).maybeSingle();
-    meuNick = perf?.nick || u.email.replace('@tgt.local','');
+    meuNick = perf?.nick || u.email.replace('@tgt.com','');
     document.getElementById('ap-nick').textContent=meuNick;
     document.getElementById('ap-link').value = perf?.link || '';
     // disponibilidade
