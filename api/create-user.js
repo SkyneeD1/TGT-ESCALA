@@ -6,14 +6,14 @@
 //  Variáveis de ambiente no Vercel (Settings > Environment Variables):
 //    SUPABASE_URL            = https://SEU-PROJETO.supabase.co
 //    SUPABASE_SERVICE_ROLE   = (Supabase > Settings > API > service_role)
-//    ADMIN_EMAIL             = admin@tgt.local
+//    ADMIN_EMAIL             = admin@tgt.com
 // ====================================================================
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método inválido' });
 
   const SUPA  = process.env.SUPABASE_URL;
   const SR    = process.env.SUPABASE_SERVICE_ROLE;
-  const ADMIN = process.env.ADMIN_EMAIL || 'admin@tgt.local';
+  const ADMIN = process.env.ADMIN_EMAIL || 'admin@tgt.com';
   if (!SUPA || !SR) return res.status(500).json({ error: 'Servidor sem configuração (env vars).' });
 
   const { token, nick, senha, link } = req.body || {};
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   if (!who || who.email !== ADMIN) return res.status(403).json({ error: 'Não autorizado.' });
 
   const nickLimpo = String(nick).trim();
-  const email = nickLimpo.toLowerCase() + '@tgt.local';
+  const email = nickLimpo.toLowerCase() + '@tgt.com';
 
   // 2) cria o usuário (já confirmado, sem precisar de e-mail real)
   const cr = await fetch(`${SUPA}/auth/v1/admin/users`, {
