@@ -29,7 +29,7 @@
   .seg .opt{flex:1;padding:10px;border-radius:9px;text-align:center;font-weight:700;font-size:13px;cursor:pointer;color:var(--muted);transition:all .15s}
   .seg .opt.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;box-shadow:var(--shadow)}
   .legenda{font-size:12px;color:var(--muted);margin:4px 0 10px}
-  .grade-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;max-height:60vh}
+  .grade-wrap{border:1px solid var(--border);border-radius:12px}
   table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;user-select:none}
   thead th{position:sticky;top:0;z-index:3;background:#241c0e;color:#fff;padding:9px 4px;cursor:pointer;border-bottom:1px solid var(--border2)}
   thead th:first-child{position:sticky;left:0;z-index:4}
@@ -100,6 +100,13 @@
         <label>Link do seu canal (Kick, Twitch ou YouTube)</label>
         <input id="ap-link" placeholder="https://kick.com/seunick">
       </div>
+      <div class="card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="font-weight:800;color:var(--gold);font-size:15px">🌙 Folga</div>
+          <div class="sub" style="margin:3px 0 0">Ative apenas quando <b>não for fazer live</b>. Assim, quando a administração gerar a escala, você não é selecionado.</div>
+        </div>
+        <button class="btn ghost" id="btn-folga" onclick="toggleFolga()">Folga: OFF</button>
+      </div>
       <div class="card">
         <div class="legenda">🟡 = disponível · clique numa célula pra ligar/desligar · clique no <b>dia</b> ou na <b>hora</b> pra marcar a linha/coluna inteira.</div>
         <div class="grade-wrap"><div id="grade"></div></div>
@@ -134,7 +141,7 @@
   const romano = s => ({A:'I',B:'II',C:'III',D:'IV',E:'V',F:'VI'}[s]||s);
   const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   let prefs = new Set();
-  let pintando=false, pintMode=true, user=null, meuNick='';
+  let pintando=false, pintMode=true, user=null, meuNick='', meuFolga=false;
 
   function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2600); }
   const emailDe = nick => nick.toLowerCase().trim()+'@tgt.com';
@@ -150,6 +157,14 @@
   }
   async function sair(){ await sb.auth.signOut(); location.reload(); }
 
+  function atualizaBtnFolga(){ const b=document.getElementById('btn-folga'); if(!b)return; b.textContent='Folga: '+(meuFolga?'ON':'OFF'); b.classList.toggle('foco-on',meuFolga); }
+  async function toggleFolga(){
+    meuFolga=!meuFolga; atualizaBtnFolga();
+    const {error}=await sb.from('profiles').update({ folga:meuFolga, updated_at:new Date().toISOString() }).eq('user_id',user.id);
+    if(error){ meuFolga=!meuFolga; atualizaBtnFolga(); toast('Erro ao salvar folga.'); return; }
+    toast(meuFolga?'🌙 Folga ativada — você não entra na escala automática.':'✅ Folga desativada.');
+  }
+
   function verAba(a){
     document.getElementById('tab-disp').classList.toggle('on',a==='disp');
     document.getElementById('tab-esc').classList.toggle('on',a==='esc');
@@ -161,10 +176,11 @@
   async function carregarApp(){
     const {data:{user:u}} = await sb.auth.getUser();
     if(!u) return; user=u;
-    const {data:perf} = await sb.from('profiles').select('nick,link').eq('user_id',u.id).maybeSingle();
+    const {data:perf} = await sb.from('profiles').select('nick,link,folga').eq('user_id',u.id).maybeSingle();
     meuNick = perf?.nick || u.email.replace('@tgt.com','');
     document.getElementById('ap-nick').textContent=meuNick;
     document.getElementById('ap-link').value = perf?.link || '';
+    meuFolga = perf?.folga===true; atualizaBtnFolga();
     const {data:disp} = await sb.from('disponibilidade').select('prefs').eq('user_id',u.id).maybeSingle();
     prefs = new Set(Array.isArray(disp?.prefs)?disp.prefs:[]);
     document.getElementById('view-login').classList.add('hidden');

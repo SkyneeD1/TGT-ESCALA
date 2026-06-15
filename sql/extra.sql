@@ -7,6 +7,9 @@
 -- status do streamer (pra mostrar ativo/desativado na lista do admin)
 alter table profiles add column if not exists ativo boolean default true;
 
+-- folga: quando true, o streamer NÃO entra na geração automática da escala
+alter table profiles add column if not exists folga boolean default false;
+
 -- escala publicada (uma linha só, id=1). O admin grava ao enviar;
 -- todos os logados leem (cada um filtra o próprio nick na tela).
 create table if not exists escala_pub (

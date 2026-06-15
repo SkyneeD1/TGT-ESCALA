@@ -81,7 +81,7 @@
   .tab.vip{border-color:rgba(255,210,74,.5)}
   .tab.vip.on{background:linear-gradient(100deg,#b8860b,#ffd24a);color:#3a2a00}
   .tab .cnt{font-size:10px;opacity:.75;margin-left:5px;font-family:'Consolas',monospace}
-  .grade-wrap{max-height:620px;overflow:auto;border:1px solid var(--border);border-radius:12px}
+  .grade-wrap{border:1px solid var(--border);border-radius:12px}
   table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;user-select:none}
   thead th{position:sticky;top:0;z-index:3;background:linear-gradient(180deg,#2d2411,#241c0e);color:#fff;padding:9px 4px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--border2)}
   thead th:first-child{position:sticky;left:0;z-index:4}
@@ -256,11 +256,11 @@
   // ---------- dados do banco ----------
   async function carregarDoBanco(){
     const st=document.getElementById('imp-status'); st.textContent='⏳ Puxando do banco...';
-    const {data:perfis,error}=await sb.from('profiles').select('user_id,nick,link');
+    const {data:perfis,error}=await sb.from('profiles').select('user_id,nick,link,folga,ativo');
     if(error){ st.textContent='Erro: '+error.message; toast('Erro ao puxar do banco.','err'); return; }
     const {data:disps}=await sb.from('disponibilidade').select('user_id,prefs');
     const pByUser={}; (disps||[]).forEach(d=>pByUser[d.user_id]=new Set(Array.isArray(d.prefs)?d.prefs:[]));
-    membros = (perfis||[]).map(p=>({ nome:p.nick, pontos:0, prefs:pByUser[p.user_id]||new Set(), link:p.link||('https://kick.com/'+p.nick) }));
+    membros = (perfis||[]).map(p=>({ nome:p.nick, pontos:0, prefs:pByUser[p.user_id]||new Set(), link:p.link||('https://kick.com/'+p.nick), folga:p.folga===true, ativo:p.ativo!==false }));
     selIdx=-1; renderMembros(); renderGrade(); renderTabs(); renderDist(); updateStats();
     const comH=membros.filter(m=>m.prefs.size>0).length;
     st.innerHTML=`✅ <b>${membros.length}</b> streamers no banco · <b>${comH}</b> já marcaram disponibilidade. Agora importe a pontuação.`;
@@ -366,7 +366,7 @@
     box.innerHTML = arr.map(({m,i})=>{ const q=qualificado(m); const th=tierHoras(m.pontos); const fe=horasDe(m.nome); const pct=th>0?Math.min(100,Math.round(fe/th*100)):0; const pl=plataformaDe(m.nome);
       return `<div class="memb ${i===selIdx?'sel':''} ${q?'':'naoq'}" onclick="selMembro(${i})" title="${m.nome} — ${m.pontos}% — ${fe}/${th}h">
         <div class="ava ${pl}">${inicial(m.nome)}</div>
-        <div class="memb-info"><div class="nm">${m.nome}</div><div class="meta"><span class="pt">${m.pontos}%</span>
+        <div class="memb-info"><div class="nm">${m.nome} ${m.folga?'<span style="color:#b86bff;font-size:11px">🌙 folga</span>':''}${m.ativo===false?'<span style="color:#ff9b9b;font-size:11px">⛔</span>':''}</div><div class="meta"><span class="pt">${m.pontos}%</span>
           ${q?`<span class="qbadge">${fe}/${th}h</span><div class="prog ${fe>=th?'full':''}"><i style="width:${pct}%"></i></div>`:'<span style="font-size:10px;color:#c77">não qualifica</span>'}</div></div>
         <span class="x" onclick="rmMembro(${i},event)" title="remover">✕</span></div>`; }).join('');
     atualizaSelInfo();
@@ -410,8 +410,8 @@
 
   function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
   function gerarAuto(){
-    const qual=membros.filter(qualificado);
-    if(!qual.length){ toast('Ninguém qualificado (pontuação ≥ '+meta()+'%). Importe a pontuação.','warn'); return; }
+    const qual=membros.filter(m=>qualificado(m) && !m.folga && m.ativo!==false);
+    if(!qual.length){ toast('Ninguém qualificado/disponível (pontuação ≥ '+meta()+'%, sem folga). Importe a pontuação.','warn'); return; }
     const quota={}, horas={}; qual.forEach(m=>{ quota[m.nome]=tierHoras(m.pontos); horas[m.nome]=0; });
     AUTO_SLOTS.forEach(s=>escala[s]={});
     const cel=[]; for(let d=0;d<7;d++)for(let h=0;h<24;h++)cel.push([d,h]); shuffle(cel);
