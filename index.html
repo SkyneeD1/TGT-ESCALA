@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Escala Dourada — Minha Disponibilidade</title>
+<style>
+  :root{--bg:#120e07;--card:#211a0d;--card2:#2a2110;--border:rgba(255,193,7,.22);--border2:rgba(255,193,7,.45);
+        --muted:#b9a472;--gold:#ffd24a;--amber:#ff9d00;--txt:#f6ecd0;--ok:#2ecc71;--err:#ff6b6b;--shadow:0 10px 30px rgba(0,0,0,.45)}
+  *{box-sizing:border-box} body{margin:0;background:radial-gradient(1100px 560px at 50% -10%,rgba(255,157,0,.14),transparent 55%),var(--bg);
+        color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.5;padding:20px;min-height:100vh}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:26px;margin:0;background:linear-gradient(90deg,var(--amber),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+  .sub{color:var(--muted);margin:2px 0 18px;font-size:13px}
+  .card{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px}
+  input{width:100%;background:#170f05;border:1px solid var(--border);border-radius:10px;color:var(--txt);padding:11px;font-size:14px;outline:none}
+  input:focus{border-color:var(--gold)}
+  .btn{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;border:none;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer;font-size:14px}
+  .btn:hover{filter:brightness(1.08)} .btn:active{transform:translateY(1px)}
+  .btn.save{background:linear-gradient(100deg,#0b8a3e,#2ecc71);color:#04210f;width:100%;padding:13px;font-size:15px}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+  .login-box{max-width:380px;margin:8vh auto 0}
+  .login-box .card{padding:26px}
+  .msg{font-size:13px;margin-top:10px;min-height:18px}
+  .hidden{display:none}
+  .toprow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .toprow .who{flex:1;font-size:13px;color:var(--muted)} .toprow .who b{color:var(--gold)}
+  /* grade */
+  .legenda{font-size:12px;color:var(--muted);margin:4px 0 10px}
+  .grade-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;max-height:60vh}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;user-select:none}
+  thead th{position:sticky;top:0;z-index:3;background:#241c0e;color:#fff;padding:9px 4px;cursor:pointer;border-bottom:1px solid var(--border2)}
+  thead th:first-child{position:sticky;left:0;z-index:4}
+  .hcol{position:sticky;left:0;z-index:2;color:var(--muted);font-family:'Consolas',monospace;font-weight:700;padding:7px 10px;background:#1d1609;border-right:1px solid var(--border);cursor:pointer;white-space:nowrap}
+  td{border-bottom:1px solid rgba(255,255,255,.04);text-align:center;padding:0}
+  td .cell{min-height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  td .cell.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;font-weight:800;border-radius:7px;margin:2px}
+  td .cell:hover{background:rgba(255,210,74,.08)}
+  td.dawn{background:rgba(0,0,0,.18)}
+  .dim{color:#5b4f30}
+  #toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--border2);border-left:4px solid var(--gold);border-radius:11px;padding:13px 17px;font-weight:600;box-shadow:var(--shadow);display:none;z-index:99}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <div id="view-login" class="login-box">
+    <div style="text-align:center;margin-bottom:14px">
+      <h1>🟡 ESCALA DOURADA</h1>
+      <p class="sub">Entre pra marcar seus horários de live</p>
+    </div>
+    <div class="card">
+      <label>Usuário</label>
+      <input id="l-nick" placeholder="seu nick" autocomplete="username" onkeydown="if(event.key==='Enter')entrar()">
+      <label style="margin-top:12px">Senha</label>
+      <input id="l-senha" type="password" placeholder="sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()">
+      <button class="btn" style="width:100%;margin-top:16px" onclick="entrar()">Entrar</button>
+      <div class="msg" id="l-msg"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="view-app" class="hidden">
+    <div class="toprow">
+      <div class="who">Olá, <b id="ap-nick">—</b> 👋</div>
+      <button class="btn ghost" onclick="sair()">Sair</button>
+    </div>
+    <h1>🟡 Minha Disponibilidade</h1>
+    <p class="sub">Clique e arraste nas horas que você consegue fazer live (segunda a domingo). Não esquece de <b>Salvar</b>.</p>
+
+    <div class="card">
+      <label>Link do seu canal (Kick, Twitch ou YouTube)</label>
+      <input id="ap-link" placeholder="https://kick.com/seunick">
+    </div>
+
+    <div class="card">
+      <div class="legenda">🟡 = disponível · clique numa célula pra ligar/desligar · clique no <b>dia</b> ou na <b>hora</b> pra marcar a linha/coluna inteira.</div>
+      <div class="grade-wrap"><div id="grade"></div></div>
+      <button class="btn save" style="margin-top:14px" onclick="salvar()">💾 Salvar minha disponibilidade</button>
+      <div class="msg" id="ap-msg"></div>
+    </div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  const DIAS=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+  const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  let prefs = new Set();        // "d-h"
+  let pintando=false, pintMode=true, user=null, meuNick='';
+
+  function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2600); }
+  const emailDe = nick => nick.toLowerCase().trim()+'@tgt.local';
+
+  async function entrar(){
+    const nick=document.getElementById('l-nick').value.trim();
+    const senha=document.getElementById('l-senha').value;
+    const msg=document.getElementById('l-msg');
+    if(!nick||!senha){ msg.style.color='var(--err)'; msg.textContent='Preencha usuário e senha.'; return; }
+    msg.style.color='var(--muted)'; msg.textContent='Entrando...';
+    const {data,error}=await sb.auth.signInWithPassword({ email:emailDe(nick), password:senha });
+    if(error){ msg.style.color='var(--err)'; msg.textContent='Usuário ou senha inválidos.'; return; }
+    await carregarApp();
+  }
+  async function sair(){ await sb.auth.signOut(); location.reload(); }
+
+  async function carregarApp(){
+    const {data:{user:u}} = await sb.auth.getUser();
+    if(!u) return;
+    user=u;
+    // perfil
+    const {data:perf} = await sb.from('profiles').select('nick,link').eq('user_id',u.id).maybeSingle();
+    meuNick = perf?.nick || u.email.replace('@tgt.local','');
+    document.getElementById('ap-nick').textContent=meuNick;
+    document.getElementById('ap-link').value = perf?.link || '';
+    // disponibilidade
+    const {data:disp} = await sb.from('disponibilidade').select('prefs').eq('user_id',u.id).maybeSingle();
+    prefs = new Set(Array.isArray(disp?.prefs)?disp.prefs:[]);
+    document.getElementById('view-login').classList.add('hidden');
+    document.getElementById('view-app').classList.remove('hidden');
+    renderGrade();
+  }
+
+  function renderGrade(){
+    const nd=(new Date().getDay()+6)%7, nh=new Date().getHours();
+    let h='<table><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th onclick="selDia(${i})">${d}</th>`).join('')+'</tr></thead><tbody>';
+    for(let hora=0;hora<24;hora++){
+      h+=`<tr><td class="hcol" onclick="selHora(${hora})">${String(hora).padStart(2,'0')}:00</td>`;
+      for(let d=0;d<7;d++){
+        const k=d+'-'+hora; const on=prefs.has(k); const dawn=hora<7;
+        h+=`<td class="${dawn?'dawn':''}" onmousedown="cd('${k}',event)" onmouseenter="ce('${k}')"><div class="cell ${on?'on':''}">${on?'🟡':'<span class=dim>·</span>'}</div></td>`;
+      }
+      h+='</tr>';
+    }
+    document.getElementById('grade').innerHTML=h+'</tbody></table>';
+  }
+  function aplica(k){ if(pintMode) prefs.add(k); else prefs.delete(k); }
+  function cd(k,e){ e.preventDefault(); pintando=true; pintMode=!prefs.has(k); aplica(k); renderGrade(); }
+  function ce(k){ if(pintando){ aplica(k); renderGrade(); } }
+  document.addEventListener('mouseup',()=>pintando=false);
+  function selDia(d){ pintMode=true; for(let h=0;h<24;h++) prefs.add(d+'-'+h); renderGrade(); }
+  function selHora(h){ pintMode=true; for(let d=0;d<7;d++) prefs.add(d+'-'+h); renderGrade(); }
+
+  async function salvar(){
+    const msg=document.getElementById('ap-msg'); msg.style.color='var(--muted)'; msg.textContent='Salvando...';
+    const link=document.getElementById('ap-link').value.trim();
+    const e1 = await sb.from('profiles').update({ link, updated_at:new Date().toISOString() }).eq('user_id',user.id);
+    const e2 = await sb.from('disponibilidade').upsert({ user_id:user.id, nick:meuNick, prefs:[...prefs], updated_at:new Date().toISOString() });
+    if(e1.error||e2.error){ msg.style.color='var(--err)'; msg.textContent='Erro ao salvar: '+((e1.error||e2.error).message); return; }
+    msg.style.color='var(--ok)'; msg.textContent='✅ Salvo! ('+prefs.size+' horas marcadas)'; toast('💾 Disponibilidade salva!');
+  }
+
+  // já logado?
+  (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) carregarApp(); })();
+</script>
+</body>
+</html>

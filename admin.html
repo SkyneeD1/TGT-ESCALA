@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Escala Dourada — Admin</title>
+<style>
+  :root{--bg:#120e07;--card:#211a0d;--card2:#2a2110;--border:rgba(255,193,7,.22);--border2:rgba(255,193,7,.45);
+        --muted:#b9a472;--gold:#ffd24a;--amber:#ff9d00;--txt:#f6ecd0;--ok:#2ecc71;--err:#ff6b6b;--shadow:0 10px 30px rgba(0,0,0,.45)}
+  *{box-sizing:border-box} body{margin:0;background:radial-gradient(1100px 560px at 50% -10%,rgba(255,157,0,.14),transparent 55%),var(--bg);
+        color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.5;padding:20px;min-height:100vh}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:26px;margin:0;background:linear-gradient(90deg,var(--amber),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+  .sub{color:var(--muted);margin:2px 0 18px;font-size:13px}
+  .card{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .card h3{margin:0 0 12px;color:var(--gold);font-size:15px}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px}
+  input{width:100%;background:#170f05;border:1px solid var(--border);border-radius:10px;color:var(--txt);padding:11px;font-size:14px;outline:none}
+  input:focus{border-color:var(--gold)}
+  .btn{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;border:none;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer;font-size:14px}
+  .btn:hover{filter:brightness(1.08)} .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end} .row .fld{flex:1;min-width:120px}
+  .login-box{max-width:380px;margin:8vh auto 0}
+  .msg{font-size:13px;margin-top:10px;min-height:18px}
+  .hidden{display:none}
+  .toprow{display:flex;align-items:center;gap:12px;margin-bottom:6px}.toprow .who{flex:1;font-size:13px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  .pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+  .pill.ok{background:rgba(46,204,113,.18);color:#7CFC00}.pill.no{background:rgba(255,107,107,.16);color:#ff9b9b}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN ADMIN -->
+  <div id="view-login" class="login-box">
+    <div style="text-align:center;margin-bottom:14px"><h1>🛠️ Admin — Escala Dourada</h1><p class="sub">Acesso do administrador</p></div>
+    <div class="card">
+      <label>E-mail do admin</label>
+      <input id="l-email" value="admin@tgt.local" onkeydown="if(event.key==='Enter')entrar()">
+      <label style="margin-top:12px">Senha</label>
+      <input id="l-senha" type="password" placeholder="senha do admin" onkeydown="if(event.key==='Enter')entrar()">
+      <button class="btn" style="width:100%;margin-top:16px" onclick="entrar()">Entrar</button>
+      <div class="msg" id="l-msg"></div>
+    </div>
+  </div>
+
+  <!-- APP ADMIN -->
+  <div id="view-app" class="hidden">
+    <div class="toprow"><div class="who">Admin: <b id="ap-email">—</b></div><button class="btn ghost" onclick="sair()">Sair</button></div>
+    <h1>🛠️ Painel do Admin</h1>
+    <p class="sub">Crie os logins dos streamers e acompanhe quem já marcou disponibilidade.</p>
+
+    <div class="card">
+      <h3>➕ Criar streamer</h3>
+      <div class="row">
+        <div class="fld"><label>Nick (login)</label><input id="c-nick" placeholder="ex.: mad_daniel"></div>
+        <div class="fld"><label>Senha</label><input id="c-senha" placeholder="senha inicial"></div>
+        <div class="fld" style="flex:2"><label>Link do canal (opcional)</label><input id="c-link" placeholder="https://kick.com/mad_daniel"></div>
+        <button class="btn" onclick="criar()">Criar</button>
+      </div>
+      <div class="msg" id="c-msg"></div>
+    </div>
+
+    <div class="card">
+      <h3>👥 Streamers <button class="btn ghost" style="float:right;padding:6px 12px;font-size:12px" onclick="carregarLista()">↻ Atualizar</button></h3>
+      <div id="lista">Carregando...</div>
+      <p class="sub" style="margin-top:14px">⏳ <b>Fase 2 (em breve):</b> botão pra puxar todo mundo, gerar a escala (listas I–IV) + VIP (V,VI) e enviar pro sistema — reaproveitando o montador que já existe.</p>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  let token=null;
+
+  async function entrar(){
+    const email=document.getElementById('l-email').value.trim();
+    const senha=document.getElementById('l-senha').value;
+    const msg=document.getElementById('l-msg'); msg.style.color='var(--muted)'; msg.textContent='Entrando...';
+    const {data,error}=await sb.auth.signInWithPassword({ email, password:senha });
+    if(error){ msg.style.color='var(--err)'; msg.textContent='Login inválido.'; return; }
+    if(email!==window.ADMIN_EMAIL){ msg.style.color='var(--err)'; msg.textContent='Esse login não é admin.'; await sb.auth.signOut(); return; }
+    await abrir();
+  }
+  async function sair(){ await sb.auth.signOut(); location.reload(); }
+
+  async function abrir(){
+    const {data:{session}}=await sb.auth.getSession();
+    token=session.access_token;
+    document.getElementById('ap-email').textContent=session.user.email;
+    document.getElementById('view-login').classList.add('hidden');
+    document.getElementById('view-app').classList.remove('hidden');
+    carregarLista();
+  }
+
+  async function criar(){
+    const nick=document.getElementById('c-nick').value.trim();
+    const senha=document.getElementById('c-senha').value;
+    const link=document.getElementById('c-link').value.trim();
+    const msg=document.getElementById('c-msg');
+    if(!nick||!senha){ msg.style.color='var(--err)'; msg.textContent='Preencha nick e senha.'; return; }
+    msg.style.color='var(--muted)'; msg.textContent='Criando...';
+    const r=await fetch('/api/create-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,nick,senha,link})});
+    const j=await r.json();
+    if(!r.ok){ msg.style.color='var(--err)'; msg.textContent='Erro: '+(j.error||r.status); return; }
+    msg.style.color='var(--ok)'; msg.textContent='✅ Criado: '+j.nick+' (login: '+j.nick+' / senha definida).';
+    document.getElementById('c-nick').value=''; document.getElementById('c-senha').value=''; document.getElementById('c-link').value='';
+    carregarLista();
+  }
+
+  async function carregarLista(){
+    const box=document.getElementById('lista'); box.textContent='Carregando...';
+    const {data:perfis,error}=await sb.from('profiles').select('user_id,nick,link');
+    if(error){ box.innerHTML='<span style="color:var(--err)">Erro: '+error.message+'</span>'; return; }
+    const {data:disp}=await sb.from('disponibilidade').select('user_id,prefs');
+    const horas={}; (disp||[]).forEach(d=>horas[d.user_id]=Array.isArray(d.prefs)?d.prefs.length:0);
+    if(!perfis||!perfis.length){ box.innerHTML='<p class="sub">Nenhum streamer criado ainda.</p>'; return; }
+    perfis.sort((a,b)=>(horas[b.user_id]||0)-(horas[a.user_id]||0));
+    let h='<table><thead><tr><th>Nick</th><th>Disponibilidade</th><th>Horas</th><th>Canal</th></tr></thead><tbody>';
+    perfis.forEach(p=>{ const n=horas[p.user_id]||0;
+      h+=`<tr><td><b>${p.nick}</b></td><td>${n>0?'<span class="pill ok">preencheu</span>':'<span class="pill no">pendente</span>'}</td><td>${n}h</td><td style="color:var(--muted);font-size:12px">${p.link||'—'}</td></tr>`; });
+    box.innerHTML=h+'</tbody></table>';
+  }
+
+  (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session&&session.user.email===window.ADMIN_EMAIL) abrir(); })();
+</script>
+</body>
+</html>
