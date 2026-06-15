@@ -28,3 +28,17 @@ create policy e_ins on escala_pub for insert
 drop policy if exists e_upd on escala_pub;
 create policy e_upd on escala_pub for update
   using ( auth.email() = 'admin@tgt.com' );
+
+-- RASCUNHO do admin (trabalho em andamento) — SÓ o admin lê/escreve.
+-- Auto-salva enquanto monta, sem aparecer pros streamers até clicar "Publicar".
+create table if not exists escala_rascunho (
+  id            int primary key default 1,
+  semana_inicio text,
+  dados         jsonb not null default '{}',
+  updated_at    timestamptz default now()
+);
+alter table escala_rascunho enable row level security;
+drop policy if exists r_all on escala_rascunho;
+create policy r_all on escala_rascunho for all
+  using ( auth.email() = 'admin@tgt.com' )
+  with check ( auth.email() = 'admin@tgt.com' );

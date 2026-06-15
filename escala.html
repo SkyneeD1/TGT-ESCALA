@@ -198,6 +198,7 @@
         <div class="row" style="margin-bottom:10px;align-items:center">
           <span id="sel-info" class="toolbar-info">Selecione um membro à esquerda.</span>
           <button class="btn" onclick="gerarAuto()">⚡ Gerar automático</button>
+          <button class="btn" onclick="publicarEscala()" style="background:linear-gradient(100deg,#7a2bd6,#b86bff);color:#fff">📢 Publicar pros streamers</button>
           <button class="btn send" onclick="enviarProSistema()">🚀 Enviar pro sistema</button>
         </div>
         <div class="row" style="margin-bottom:12px;align-items:center">
@@ -288,6 +289,36 @@
     }catch(e){ toast('Erro: '+e.message,'err'); }
   }
 
+  // ---------- RASCUNHO (auto-salva, só o admin vê) ----------
+  let _saveT=null;
+  function salvarRascunho(){
+    clearTimeout(_saveT);
+    _saveT=setTimeout(async()=>{
+      const dataIni=document.getElementById('p-data').value;
+      try{ await sb.from('escala_rascunho').upsert({ id:1, semana_inicio:dataIni, dados:escala, updated_at:new Date().toISOString() }); }catch(e){}
+    }, 700);
+  }
+  async function carregarRascunho(){
+    try{
+      const {data}=await sb.from('escala_rascunho').select('semana_inicio,dados').eq('id',1).maybeSingle();
+      if(data){
+        if(data.dados && Object.keys(data.dados).length){ SLOTS.forEach(s=>{ escala[s]=data.dados[s]||{}; }); }
+        if(data.semana_inicio) document.getElementById('p-data').value=data.semana_inicio;
+      }
+    }catch(e){}
+    renderGrade(); renderTabs(); renderDist(); updateStats();
+  }
+  // ---------- PUBLICAR (manda pros streamers verem) ----------
+  async function publicarEscala(){
+    let total=0; SLOTS.forEach(s=>total+=Object.keys(escala[s]).length);
+    if(!total){ toast('Escala vazia — gere/monte antes de publicar.','warn'); return; }
+    if(!(await modalConfirm('Publicar a escala atual <b>pros streamers</b>? Eles vão ver na aba "Minha Escala".','Publicar'))) return;
+    const dataIni=document.getElementById('p-data').value;
+    const {error}=await sb.from('escala_pub').upsert({ id:1, semana_inicio:dataIni, dados:escala, updated_at:new Date().toISOString() });
+    if(error){ toast('Erro ao publicar: '+error.message,'err'); return; }
+    toast('📢 Escala publicada! Os streamers já podem ver.','ok');
+  }
+
   // ---------- faixas ----------
   let TIERS = [{min:60,h:1},{min:70,h:2},{min:87,h:3},{min:96,h:4}];
   function lerTiers(){ const t=[]; for(let i=0;i<4;i++){ const min=parseFloat(document.getElementById('t-min-'+i).value); const h=parseInt(document.getElementById('t-h-'+i).value); if(!isNaN(min)&&!isNaN(h)&&h>0) t.push({min,h}); } if(t.length) TIERS=t; renderMembros(); renderDist(); }
@@ -371,9 +402,9 @@
   function cellDown(k,e){ e.preventDefault(); if(slotSel==='RESUMO')return; if(selIdx<0){toast('Selecione um membro primeiro.','warn');return;} pintando=true; const m=membros[selIdx];
     pintMode = modo==='pref' ? !m.prefs.has(k) : (escala[slotSel][k]!==m.nome); aplicaCelula(k); renderGrade(); }
   function cellEnter(k){ if(pintando){ aplicaCelula(k); renderGrade(); } }
-  document.addEventListener('mouseup',()=>{ if(pintando){ pintando=false; renderTabs(); renderDist(); updateStats(); if(document.getElementById('m-ordem').value==='horas') renderMembros(); } });
-  function selDia(d){ if(slotSel==='RESUMO'||selIdx<0)return; pintMode=true; for(let h=0;h<24;h++)aplicaCelula(d+'-'+h); renderGrade(); renderTabs(); renderDist(); updateStats(); }
-  function selHora(h){ if(slotSel==='RESUMO'||selIdx<0)return; pintMode=true; for(let d=0;d<7;d++)aplicaCelula(d+'-'+h); renderGrade(); renderTabs(); renderDist(); updateStats(); }
+  document.addEventListener('mouseup',()=>{ if(pintando){ pintando=false; renderTabs(); renderDist(); updateStats(); if(document.getElementById('m-ordem').value==='horas') renderMembros(); salvarRascunho(); } });
+  function selDia(d){ if(slotSel==='RESUMO'||selIdx<0)return; pintMode=true; for(let h=0;h<24;h++)aplicaCelula(d+'-'+h); renderGrade(); renderTabs(); renderDist(); updateStats(); salvarRascunho(); }
+  function selHora(h){ if(slotSel==='RESUMO'||selIdx<0)return; pintMode=true; for(let d=0;d<7;d++)aplicaCelula(d+'-'+h); renderGrade(); renderTabs(); renderDist(); updateStats(); salvarRascunho(); }
 
   function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
   function gerarAuto(){
@@ -391,6 +422,7 @@
       } }
     renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats();
     let total=0; AUTO_SLOTS.forEach(s=>total+=Object.keys(escala[s]).length);
+    salvarRascunho();
     toast(`⚡ Escala gerada — <b>${total}</b> lives nas listas I–IV (V e VI são VIP, à mão).`,'ok');
   }
   async function preencherVazias(todas){
@@ -398,9 +430,9 @@
     const nome=membros[selIdx].nome; const alvos=todas?SLOTS:[slotSel==='RESUMO'?'A':slotSel];
     if(todas && !(await modalConfirm(`Preencher TODAS as casas vazias das 6 listas com "<b>${nome}</b>"?`,'Preencher'))) return;
     let n=0; for(const s of alvos) for(let d=0;d<7;d++) for(let h=0;h<24;h++){ const k=d+'-'+h; if(!escala[s][k]){ escala[s][k]=nome; n++; } }
-    renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats(); toast(`✅ ${n} casas preenchidas com "${nome}".`,'ok');
+    renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats(); salvarRascunho(); toast(`✅ ${n} casas preenchidas com "${nome}".`,'ok');
   }
-  function limparEscala(){ escala=novaEscala(); renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats(); toast('Escala limpa.','warn'); }
+  function limparEscala(){ escala=novaEscala(); renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats(); salvarRascunho(); toast('Escala limpa.','warn'); }
 
   function renderDist(){
     const cont={}; SLOTS.forEach(s=>{ for(const k in escala[s]){ const n=escala[s][k]; cont[n]=(cont[n]||0)+1; } });
@@ -478,7 +510,8 @@
     if(!session || session.user.email!==window.ADMIN_EMAIL){ location.href='admin.html'; return; }
     adminToken=session.access_token;
     renderMembros(); renderTabs(); renderGrade(); renderDist(); updateStats();
-    carregarDoBanco();
+    await carregarDoBanco();
+    await carregarRascunho();   // recarrega a escala que o admin já tinha montado
   })();
 </script>
 </body>
