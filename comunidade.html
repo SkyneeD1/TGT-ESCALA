@@ -305,12 +305,10 @@
     const r1=await sb.from('profiles').select('nick,link,folga,ativo,vip'); PERFIS=(r1.data||[]).filter(p=>p.ativo!==false);
     const r2=await sb.from('escala_pub').select('dados,semana_inicio').eq('id',1).maybeSingle();
     PUB=(r2.data&&r2.data.dados)||{}; SEMANA=r2.data&&r2.data.semana_inicio;
-    DEMO=false;
-    if(!SLOTS.some(s=>PUB[s]&&Object.keys(PUB[s]).length) && PERFIS.length){ PUB=demo(); DEMO=true; }
     numeros(); streamers(); agenda(); ranking(); aprov();
   }
-  function demo(){ const d={__links:{}}; SLOTS.forEach(s=>d[s]={}); const hs=[9,12,15,18,21];
-    PERFIS.forEach((p,i)=>{ d.__links[p.nick]=p.link||''; d[SLOTS[i%6]][(i%7)+'-'+hs[i%hs.length]]=p.nick; d[SLOTS[(i+2)%6]][((i+3)%7)+'-'+hs[(i+2)%hs.length]]=p.nick; }); return d; }
+  function temEscala(){ return SLOTS.some(s=>PUB[s]&&Object.keys(PUB[s]).length); }
+  const VAZIO='<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px">Nenhuma escala publicada ainda.<br>O admin gera em <b>ADMIN → Montar escala</b> e clica <b>📢 Publicar</b>.</div>';
   function contLives(){ const c={}; SLOTS.forEach(s=>{ const o=PUB[s]||{}; for(const k in o){ const n=o[k]; if(n)c[n]=(c[n]||0)+1; } }); return c; }
   function aoVivo(nick){ const nd=(new Date().getDay()+6)%7,nh=new Date().getHours(); for(const s of SLOTS){ if((PUB[s]||{})[nd+'-'+nh]===nick) return true; } return false; }
 
@@ -323,7 +321,7 @@
       return `<div class="stm"><div class="ring" style="background:linear-gradient(135deg,${PLAT[pl]},rgba(255,255,255,.1));box-shadow:0 0 15px ${PLAT[pl]}66">
         <div class="pic" style="background:${GRAD[pl]}">${ini(p.nick)}</div>${aoVivo(p.nick)?'<span class="live">LIVE</span>':''}${p.vip?'<span class="crown">👑</span>':''}</div>
         <div class="nm">${p.nick}</div><div class="pl">${pl.toUpperCase()}</div></div>`; }).join('')||'<div class="pl" style="padding:6px">Nenhum streamer ainda.</div>'; }
-  function agendaInfo(){ let t='SEMANA ATUAL'; if(SEMANA){ const b=new Date(SEMANA+'T00:00:00'); const p2=n=>String(n).padStart(2,'0'); t='SEMANA '+p2(b.getDate())+'/'+p2(b.getMonth()+1); } return DEMO?'PRÉVIA DE EXEMPLO':t; }
+  function agendaInfo(){ if(SEMANA){ const b=new Date(SEMANA+'T00:00:00'); const p2=n=>String(n).padStart(2,'0'); return 'SEMANA '+p2(b.getDate())+'/'+p2(b.getMonth()+1); } return 'SEMANA ATUAL'; }
   function agendaHTML(){ let h='';
     for(let d=0;d<7;d++){ const it=[],vis=new Set();
       SLOTS.forEach(s=>{ const o=PUB[s]||{}; for(const k in o){ const [dd,hh]=k.split('-').map(Number); if(dd===d){ const n=o[k]; const key=hh+'|'+n; if(!vis.has(key)){ vis.add(key); it.push({h:hh,n}); } } } });
@@ -333,7 +331,7 @@
       it.forEach(e=>{ const pl=platDe(e.n); h+=`<div class="ev"><div class="t">${String(e.h).padStart(2,'0')}:00</div><div class="n">${isVip(e.n)?'👑 ':''}${e.n}</div><span class="pill ${pl}">${pl.toUpperCase()}</span></div>`; });
       h+='</div>'; }
     return h; }
-  function agenda(){ document.getElementById('ag-info').textContent=agendaInfo(); document.getElementById('agenda').innerHTML=agendaHTML(); }
+  function agenda(){ const v=temEscala(); document.getElementById('ag-info').textContent=v?agendaInfo():''; document.getElementById('agenda').innerHTML=v?agendaHTML():VAZIO; }
 
   // ----- páginas completas (navegação do menu) -----
   function cardStreamer(p){ const pl=platDe(p.nick); return `<div style="background:var(--raise);border:1px solid var(--bd);border-radius:12px;padding:14px;text-align:center">
@@ -351,7 +349,7 @@
     document.querySelectorAll('[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
     if(v==='streamers') renderStreamersFull();
     if(v==='pontos') renderPontosFull();
-    if(v==='agenda'){ document.getElementById('full-agenda').innerHTML=agendaHTML(); document.getElementById('ag-info2').textContent=agendaInfo(); }
+    if(v==='agenda'){ const tv=temEscala(); document.getElementById('full-agenda').innerHTML=tv?agendaHTML():VAZIO; document.getElementById('ag-info2').textContent=tv?agendaInfo():''; }
     window.scrollTo(0,0);
   }
   function ranking(){ const c=contLives(); const arr=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10); const box=document.getElementById('ranking');
