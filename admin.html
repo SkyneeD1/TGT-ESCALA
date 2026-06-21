@@ -117,24 +117,31 @@
   const escJs = s => String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   async function carregarLista(){
     const box=document.getElementById('lista'); box.textContent='Carregando...';
-    const {data:perfis,error}=await sb.from('profiles').select('user_id,nick,link,ativo');
+    const {data:perfis,error}=await sb.from('profiles').select('user_id,nick,link,ativo,vip');
     if(error){ box.innerHTML='<span style="color:var(--err)">Erro: '+error.message+'</span>'; return; }
     const {data:disp}=await sb.from('disponibilidade').select('user_id,prefs');
     const horas={}; (disp||[]).forEach(d=>horas[d.user_id]=Array.isArray(d.prefs)?d.prefs.length:0);
     if(!perfis||!perfis.length){ box.innerHTML='<p class="sub">Nenhum streamer criado ainda.</p>'; return; }
-    perfis.sort((a,b)=>(horas[b.user_id]||0)-(horas[a.user_id]||0));
+    perfis.sort((a,b)=> (b.vip===true)-(a.vip===true) || (horas[b.user_id]||0)-(horas[a.user_id]||0));
     let h='<table><thead><tr><th>Nick</th><th>Status</th><th>Disp.</th><th>Horas</th><th>Ações</th></tr></thead><tbody>';
-    perfis.forEach(p=>{ const n=horas[p.user_id]||0; const ativo=p.ativo!==false; const nk=escJs(p.nick);
+    perfis.forEach(p=>{ const n=horas[p.user_id]||0; const ativo=p.ativo!==false; const vip=p.vip===true; const nk=escJs(p.nick);
       h+=`<tr>
-        <td><b>${p.nick}</b><div style="color:var(--muted);font-size:11px">${p.link||'—'}</div></td>
+        <td><b>${p.nick}</b> ${vip?'<span class="pill" style="background:linear-gradient(100deg,#b8860b,#ffd24a);color:#3a2a00">👑 VIP</span>':''}<div style="color:var(--muted);font-size:11px">${p.link||'—'}</div></td>
         <td>${ativo?'<span class="pill ok">ativo</span>':'<span class="pill no">desativado</span>'}</td>
         <td>${n>0?'<span class="pill ok">preencheu</span>':'<span class="pill no">pendente</span>'}</td>
         <td>${n}h</td>
         <td style="white-space:nowrap">
+          <button class="btn ghost" style="padding:4px 9px;font-size:11px;color:${vip?'#ffd24a':'var(--muted)'}" onclick="setVip('${p.user_id}','${nk}',${vip?'false':'true'})">${vip?'👑 Tirar VIP':'👑 Tornar VIP'}</button>
           <button class="btn ghost" style="padding:4px 9px;font-size:11px" onclick="toggleUsuario('${p.user_id}','${nk}',${ativo?'false':'true'})">${ativo?'⏸️ Desativar':'▶️ Ativar'}</button>
           <button class="btn ghost" style="padding:4px 9px;font-size:11px;color:#ff9b9b" onclick="deletarUsuario('${p.user_id}','${nk}')">🗑️ Excluir</button>
         </td></tr>`; });
     box.innerHTML=h+'</tbody></table>';
+  }
+  async function setVip(id,nick,vip){
+    if(!confirm((vip?'Tornar "'+nick+'" VIP':'Tirar o VIP de "'+nick+'"')+'?')) return;
+    const r=await fetch('/api/set-vip',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,user_id:id,vip})});
+    const j=await r.json(); if(!r.ok){ alert('Erro: '+(j.error||r.status)); return; }
+    carregarLista();
   }
   async function toggleUsuario(id,nick,ativar){
     if(!confirm((ativar?'Ativar':'Desativar')+' o streamer "'+nick+'"?'+(ativar?'':' Ele não vai mais conseguir logar (mas os dados ficam).'))) return;
