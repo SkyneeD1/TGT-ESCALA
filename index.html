@@ -227,7 +227,13 @@
 
     <div id="v-agenda" class="hidden">
       <div class="card">
-        <div class="sec-h"><span class="dot"><svg class="i"><use href="#cal"/></svg></span> AGENDA SEMANAL COMPLETA <span class="more" id="ag-info2"></span></div>
+        <div class="sec-h"><span class="dot"><svg class="i"><use href="#cal"/></svg></span> AGENDA SEMANAL
+          <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <span class="more" id="ag-info2" style="margin:0;cursor:default"></span>
+            <button class="btn" id="ag-todos" style="padding:6px 12px;font-size:11px" onclick="setFocoAgenda(false)">TODA A ESCALA</button>
+            <button class="btn outline" id="ag-meus" style="padding:6px 12px;font-size:11px" onclick="setFocoAgenda(true)">MINHA ESCALA</button>
+          </span>
+        </div>
         <div class="agenda" id="full-agenda"></div>
       </div>
     </div>
@@ -322,9 +328,9 @@
         <div class="pic" style="background:${GRAD[pl]}">${ini(p.nick)}</div>${aoVivo(p.nick)?'<span class="live">LIVE</span>':''}${p.vip?'<span class="crown">👑</span>':''}</div>
         <div class="nm">${p.nick}</div><div class="pl">${pl.toUpperCase()}</div></div>`; }).join('')||'<div class="pl" style="padding:6px">Nenhum streamer ainda.</div>'; }
   function agendaInfo(){ if(SEMANA){ const b=new Date(SEMANA+'T00:00:00'); const p2=n=>String(n).padStart(2,'0'); return 'SEMANA '+p2(b.getDate())+'/'+p2(b.getMonth()+1); } return 'SEMANA ATUAL'; }
-  function agendaHTML(){ let h='';
+  function agendaHTML(soMeu){ let h='';
     for(let d=0;d<7;d++){ const it=[],vis=new Set();
-      SLOTS.forEach(s=>{ const o=PUB[s]||{}; for(const k in o){ const [dd,hh]=k.split('-').map(Number); if(dd===d){ const n=o[k]; const key=hh+'|'+n; if(!vis.has(key)){ vis.add(key); it.push({h:hh,n}); } } } });
+      SLOTS.forEach(s=>{ const o=PUB[s]||{}; for(const k in o){ const [dd,hh]=k.split('-').map(Number); if(dd===d){ const n=o[k]; if(soMeu && !ehMeu(n)) continue; const key=hh+'|'+n; if(!vis.has(key)){ vis.add(key); it.push({h:hh,n}); } } } });
       it.sort((a,b)=>a.h-b.h);
       h+=`<div class="col"><h6>${DIAS[d]}</h6>`;
       if(!it.length) h+='<div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px 0">—</div>';
@@ -349,9 +355,19 @@
     document.querySelectorAll('[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
     if(v==='streamers') renderStreamersFull();
     if(v==='pontos') renderPontosFull();
-    if(v==='agenda'){ const tv=temEscala(); document.getElementById('full-agenda').innerHTML=tv?agendaHTML():VAZIO; document.getElementById('ag-info2').textContent=tv?agendaInfo():''; }
+    if(v==='agenda') renderAgendaFull();
     window.scrollTo(0,0);
   }
+  let focoAg=false;
+  function setFocoAgenda(b){ focoAg=b;
+    document.getElementById('ag-todos').className='btn'+(b?' outline':'');
+    document.getElementById('ag-meus').className='btn'+(b?'':' outline');
+    document.getElementById('ag-todos').style.cssText='padding:6px 12px;font-size:11px';
+    document.getElementById('ag-meus').style.cssText='padding:6px 12px;font-size:11px';
+    renderAgendaFull(); }
+  function renderAgendaFull(){ const tv=temEscala();
+    document.getElementById('full-agenda').innerHTML = tv ? agendaHTML(focoAg) : VAZIO;
+    document.getElementById('ag-info2').textContent = tv ? (focoAg?'só os seus':agendaInfo()) : ''; }
   function ranking(){ const c=contLives(); const arr=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10); const box=document.getElementById('ranking');
     if(!arr.length){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Sem dados ainda.</div>'; return; }
     box.innerHTML=arr.map(([n,t],i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(n)]}">${ini(n)}</div><div class="u">${isVip(n)?'👑 ':''}${n}</div><div class="pt">${(t*120).toLocaleString('pt-BR')}</div></div>`).join(''); }
