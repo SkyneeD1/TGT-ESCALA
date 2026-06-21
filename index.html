@@ -110,6 +110,16 @@
   footer img{height:38px;vertical-align:middle;margin-right:8px}
   footer .soc{display:flex;gap:14px;color:var(--muted)}
 
+  .dgw{overflow:auto;border:1px solid var(--bd);border-radius:12px}
+  table.dg{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;user-select:none}
+  table.dg thead th{position:sticky;top:0;z-index:2;background:#16151a;color:#fff;padding:8px 4px;border-bottom:1px solid var(--bd2);cursor:pointer;font-family:Oswald}
+  table.dg .hc{position:sticky;left:0;background:#131217;color:var(--muted);font-family:Oswald;font-weight:700;padding:6px 10px;border-right:1px solid var(--bd);cursor:pointer;white-space:nowrap}
+  table.dg td{border-bottom:1px solid rgba(255,255,255,.04);text-align:center;padding:0}
+  table.dg .cell{min-height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  table.dg .cell.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2700;font-weight:800;border-radius:7px;margin:2px}
+  table.dg .cell:hover{background:rgba(255,200,70,.08)}
+  table.dg td.dawn{background:rgba(0,0,0,.18)} .dim{color:#5b4f30}
+
   @media(max-width:1100px){
     .shell{grid-template-columns:1fr} .side{display:none}
     .right{position:static;height:auto;border-left:none;border-top:1px solid var(--bd)}
@@ -161,6 +171,7 @@
       <a data-v="streamers" onclick="mostrar('streamers')"><svg class="i"><use href="#game"/></svg> STREAMERS</a>
       <a data-v="pontos" onclick="mostrar('pontos')"><svg class="i"><use href="#trophy"/></svg> PONTOS</a>
       <a data-v="agenda" onclick="mostrar('agenda')"><svg class="i"><use href="#cal"/></svg> AGENDA</a>
+      <a data-v="disp" onclick="mostrar('disp')"><svg class="i"><use href="#radio"/></svg> DISPONIBILIDADE</a>
       <a data-v="sobre" onclick="mostrar('sobre')"><svg class="i"><use href="#info"/></svg> SOBRE</a>
     </nav>
     <div class="numbers">
@@ -176,7 +187,7 @@
     <div class="top">
       <nav class="menu"><a data-v="inicio" class="on" onclick="mostrar('inicio')">INÍCIO</a><a data-v="comunidade" onclick="mostrar('comunidade')">COMUNIDADE</a><a data-v="streamers" onclick="mostrar('streamers')">STREAMERS</a><a data-v="pontos" onclick="mostrar('pontos')">PONTOS</a><a data-v="agenda" onclick="mostrar('agenda')">AGENDA</a><a data-v="sobre" onclick="mostrar('sobre')">SOBRE</a></nav>
       <span class="who">Olá, <b id="ap-nick">—</b></span>
-      <button class="btn" onclick="location.href='disponibilidade.html'">MINHA DISPONIBILIDADE</button>
+      <button class="btn" onclick="mostrar('disp')">MINHA DISPONIBILIDADE</button>
       <button class="btn outline" id="btn-admin" style="display:none" onclick="location.href='admin.html'">ADMIN</button>
       <button class="btn outline" onclick="sair()">SAIR</button>
     </div>
@@ -187,7 +198,7 @@
         <div>
           <h1>MAIS QUE STREAMERS,<br><span class="gold">SOMOS UMA COMUNIDADE.</span></h1>
           <p>A TGT é a casa de streamers que evoluem juntos. Conecte-se, colabore e cresça com a maior comunidade de creators do Brasil.</p>
-          <div class="ctas"><button class="btn" onclick="location.href='disponibilidade.html'">JUNTE-SE À COMUNIDADE</button><button class="btn outline" onclick="mostrar('streamers')">CONHEÇA OS STREAMERS</button></div>
+          <div class="ctas"><button class="btn" onclick="mostrar('disp')">MARCAR DISPONIBILIDADE</button><button class="btn outline" onclick="mostrar('streamers')">CONHEÇA OS STREAMERS</button></div>
         </div>
       </section>
       <div class="card" style="margin-bottom:16px">
@@ -205,7 +216,7 @@
         <h2 style="margin:0 0 10px;font-family:Oswald;color:var(--gold);font-size:22px">COMUNIDADE TGT</h2>
         <p style="color:var(--muted);max-width:620px">Bem-vindo à família! 🦅 Use o <b>chat ao lado</b> pra conversar com a galera em tempo real, acompanhe a <b>agenda</b>, suba no <b>ranking</b> e marque sua <b>disponibilidade</b>.</p>
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn" onclick="location.href='disponibilidade.html'">MARCAR MINHA DISPONIBILIDADE</button>
+          <button class="btn" onclick="mostrar('disp')">MARCAR MINHA DISPONIBILIDADE</button>
           <button class="btn outline" onclick="mostrar('agenda')">VER AGENDA</button>
         </div>
       </div>
@@ -242,6 +253,24 @@
       <div class="card" style="padding:26px">
         <h2 style="margin:0 0 10px;font-family:Oswald;color:var(--gold);font-size:22px">SOBRE A TGT</h2>
         <p style="color:var(--muted);max-width:660px">A <b>TGT — The Golden Team</b> é a maior comunidade de streamers do Brasil. Aqui a gente cresce junto: escala de lives organizada, colaborações, ranking, eventos e muito mais. Mais que streamers, somos uma comunidade. 🦅</p>
+      </div>
+    </div>
+
+    <div id="v-disp" class="hidden">
+      <div class="card" style="padding:20px">
+        <div class="sec-h" style="padding:0 0 8px"><span class="dot"><svg class="i"><use href="#radio"/></svg></span> MINHA DISPONIBILIDADE</div>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 14px">Clique e arraste nas horas que você consegue fazer live (SEG a DOM). Clique no <b>dia</b> ou na <b>hora</b> pra marcar a linha/coluna inteira. Depois clique em <b>Salvar</b>.</p>
+        <label>Link do seu canal (Kick, Twitch ou YouTube)</label>
+        <input id="d-link" placeholder="https://kick.com/seunick" style="max-width:440px">
+        <div style="display:flex;align-items:center;gap:14px;margin:16px 0;flex-wrap:wrap">
+          <button class="btn outline" id="d-folga" onclick="toggleFolgaDisp()">FOLGA: OFF</button>
+          <span style="color:var(--muted);font-size:12px">Ative só quando <b>não</b> for fazer live (aí você não entra na geração da escala).</span>
+        </div>
+        <div class="dgw"><div id="d-grade"></div></div>
+        <div style="margin-top:14px;display:flex;align-items:center;gap:12px">
+          <button class="btn" onclick="salvarDisp()">💾 SALVAR DISPONIBILIDADE</button>
+          <span class="msg" id="d-msg"></span>
+        </div>
       </div>
     </div>
   </main>
@@ -351,13 +380,47 @@
     if(!arr.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">Sem dados ainda. Publique uma escala no painel.</div>'; return; }
     box.innerHTML=arr.map(([n,t],i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(n)]}">${ini(n)}</div><div class="u">${isVip(n)?'👑 ':''}${n}</div><div class="pt">${(t*120).toLocaleString('pt-BR')}</div></div>`).join(''); }
   function mostrar(v){
-    ['inicio','comunidade','streamers','pontos','agenda','sobre'].forEach(x=>{ const el=document.getElementById('v-'+x); if(el) el.classList.toggle('hidden',x!==v); });
+    ['inicio','comunidade','streamers','pontos','agenda','disp','sobre'].forEach(x=>{ const el=document.getElementById('v-'+x); if(el) el.classList.toggle('hidden',x!==v); });
     document.querySelectorAll('[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
     if(v==='streamers') renderStreamersFull();
     if(v==='pontos') renderPontosFull();
     if(v==='agenda') renderAgendaFull();
+    if(v==='disp' && !dispLoaded) carregarDisp();
     window.scrollTo(0,0);
   }
+
+  // ----- MINHA DISPONIBILIDADE (marcar horários, dentro do mesmo sistema) -----
+  let dispPrefs=new Set(), dispLoaded=false, meuUid=null, meuFolgaD=false, pintD=false, pintModeD=true;
+  async function carregarDisp(){
+    const {data:{user:u}}=await sb.auth.getUser(); if(!u) return; meuUid=u.id;
+    const {data:perf}=await sb.from('profiles').select('link,folga').eq('user_id',u.id).maybeSingle();
+    document.getElementById('d-link').value=perf?.link||''; meuFolgaD=perf?.folga===true; btnFolgaD();
+    const {data:disp}=await sb.from('disponibilidade').select('prefs').eq('user_id',u.id).maybeSingle();
+    dispPrefs=new Set(Array.isArray(disp?.prefs)?disp.prefs:[]);
+    renderDispGrade(); dispLoaded=true;
+  }
+  function renderDispGrade(){ let h='<table class="dg"><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th onclick="dSelDia(${i})">${d}</th>`).join('')+'</tr></thead><tbody>';
+    for(let hora=0;hora<24;hora++){ h+=`<tr><td class="hc" onclick="dSelHora(${hora})">${String(hora).padStart(2,'0')}:00</td>`;
+      for(let d=0;d<7;d++){ const k=d+'-'+hora; const on=dispPrefs.has(k);
+        h+=`<td class="${hora<7?'dawn':''}" onmousedown="dCd('${k}',event)" onmouseenter="dCe('${k}')"><div class="cell ${on?'on':''}">${on?'🟡':'<span class=dim>·</span>'}</div></td>`; }
+      h+='</tr>'; }
+    document.getElementById('d-grade').innerHTML=h+'</tbody></table>'; }
+  function dAplica(k){ if(pintModeD) dispPrefs.add(k); else dispPrefs.delete(k); }
+  function dCd(k,e){ e.preventDefault(); pintD=true; pintModeD=!dispPrefs.has(k); dAplica(k); renderDispGrade(); }
+  function dCe(k){ if(pintD){ dAplica(k); renderDispGrade(); } }
+  document.addEventListener('mouseup',()=>pintD=false);
+  function dSelDia(d){ pintModeD=true; for(let h=0;h<24;h++) dispPrefs.add(d+'-'+h); renderDispGrade(); }
+  function dSelHora(h){ pintModeD=true; for(let d=0;d<7;d++) dispPrefs.add(d+'-'+h); renderDispGrade(); }
+  function btnFolgaD(){ const b=document.getElementById('d-folga'); b.textContent='FOLGA: '+(meuFolgaD?'ON':'OFF'); b.className='btn'+(meuFolgaD?'':' outline'); }
+  async function toggleFolgaDisp(){ meuFolgaD=!meuFolgaD; btnFolgaD();
+    const {error}=await sb.from('profiles').update({folga:meuFolgaD, updated_at:new Date().toISOString()}).eq('user_id',meuUid);
+    if(error){ meuFolgaD=!meuFolgaD; btnFolgaD(); alert('Erro ao salvar folga.'); } }
+  async function salvarDisp(){ const m=document.getElementById('d-msg'); m.style.color='var(--muted)'; m.textContent='Salvando...';
+    const link=document.getElementById('d-link').value.trim();
+    const e1=await sb.from('profiles').update({link, updated_at:new Date().toISOString()}).eq('user_id',meuUid);
+    const e2=await sb.from('disponibilidade').upsert({user_id:meuUid, nick:meuNick, prefs:[...dispPrefs], updated_at:new Date().toISOString()});
+    if(e1.error||e2.error){ m.style.color='var(--err)'; m.textContent='Erro: '+((e1.error||e2.error).message); return; }
+    m.style.color='var(--ok)'; m.textContent='✅ Salvo! ('+dispPrefs.size+' horas marcadas)'; }
   let focoAg=false;
   function setFocoAgenda(b){ focoAg=b;
     document.getElementById('ag-todos').className='btn'+(b?' outline':'');
