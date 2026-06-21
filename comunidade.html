@@ -437,10 +437,10 @@
     const tabs=SLOTS.map(s=>{ const vip=VIP_SLOTS.includes(s); const n=Object.keys(PUB[s]||{}).length;
       return `<button class="agtab ${s===agSlot?'on':''}" onclick="setAgSlot('${s}','${cid}',0)">${vip?'⭐ ':''}Lista ${romano(s)}${n?` (${n})`:''}</button>`; }).join('');
     el.innerHTML=`<div class="agtabs">${tabs}</div><div class="agenda">${diasHTML(agSlot,false)}</div>`; }
-  function setAgSlot(s,cid,soMeu){ agSlot=s; if(cid==='full-agenda') renderAgendaFull(); else agendaTabsGrid(cid,!!soMeu); }
+  function setAgSlot(s,cid,soMeu){ agSlot=s; if(cid==='full-agenda') renderAgendaFull(); else if(cid==='agenda') agenda(); else agendaTabsGrid(cid,!!soMeu); }
   // grade completa de UMA lista (24h x 7 dias) com vagos / à venda / comprar
-  function gradeListaHTML(slot){ const o=PUB[slot]||{}; const venda=PUB.__venda||{};
-    let h='<div class="agtabs">'+SLOTS.map(s=>{const vip=VIP_SLOTS.includes(s);return `<button class="agtab ${s===slot?'on':''}" onclick="setAgSlot('${s}','full-agenda',0)">${vip?'⭐ ':''}Lista ${romano(s)}</button>`;}).join('')+'</div>';
+  function gradeListaHTML(slot,cid){ const o=PUB[slot]||{}; const venda=PUB.__venda||{};
+    let h='<div class="agtabs">'+SLOTS.map(s=>{const vip=VIP_SLOTS.includes(s);return `<button class="agtab ${s===slot?'on':''}" onclick="setAgSlot('${s}','${cid}',0)">${vip?'⭐ ':''}Lista ${romano(s)}</button>`;}).join('')+'</div>';
     h+='<div class="dgw"><table class="dg"><thead><tr><th>Hora</th>'+DIAS.map(d=>`<th>${d}</th>`).join('')+'</tr></thead><tbody>';
     for(let hora=0;hora<24;hora++){ h+=`<tr><td class="hc">${String(hora).padStart(2,'0')}:00</td>`;
       for(let d=0;d<7;d++){ const k=d+'-'+hora; const nick=o[k]; const aVenda=!!venda[slot+'|'+k];
@@ -459,7 +459,7 @@
     const {error}=await sb.from('tickets').insert({user_id:UID,nick:meuNick,tipo:'compra',assunto:'Compra de horário — Lista '+romano(slot)+' · '+dia+' '+hh,mensagem:'Quero comprar este horário vago (Lista '+romano(slot)+', '+dia+' '+hh+').'});
     if(error){ alert('Erro: '+error.message); return; }
     alert('✅ Pedido de compra enviado! A administração vai te responder pelo Suporte.'); }
-  function agenda(){ document.getElementById('ag-info').textContent=temEscala()?agendaInfo():''; agendaTabsGrid('agenda',false); }
+  function agenda(){ const el=document.getElementById('agenda'); document.getElementById('ag-info').textContent=temEscala()?agendaInfo():''; el.innerHTML=temEscala()?gradeListaHTML(agSlot,'agenda'):VAZIO; }
 
   // ----- páginas completas (navegação do menu) -----
   function cardStreamer(p){ const pl=platDe(p.nick); return `<div style="background:var(--raise);border:1px solid var(--bd);border-radius:12px;padding:14px;text-align:center">
@@ -527,7 +527,7 @@
     document.getElementById('ag-info2').textContent = temEscala()?(focoAg?'só os seus':agendaInfo()):'';
     if(!temEscala()){ el.innerHTML=VAZIO; return; }
     if(focoAg){ el.innerHTML='<div class="agenda" style="padding-top:14px">'+meusDiasHTML()+'</div>'; return; }
-    el.innerHTML=gradeListaHTML(agSlot); }
+    el.innerHTML=gradeListaHTML(agSlot,'full-agenda'); }
   function ranking(){ const arr=PERFIS.filter(p=>(p.pontos||0)>0).sort((a,b)=>(b.pontos||0)-(a.pontos||0)).slice(0,10); const box=document.getElementById('ranking');
     if(!arr.length){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Sem pontuação ainda. (Admin sobe o Excel em ADMIN.)</div>'; return; }
     box.innerHTML=arr.map((p,i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u">${p.vip?'👑 ':''}${p.nick}</div><div class="pt">${Number(p.pontos).toLocaleString('pt-BR')}</div></div>`).join(''); }
