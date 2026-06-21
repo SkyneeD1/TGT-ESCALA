@@ -156,12 +156,12 @@
   <aside class="side">
     <div class="logo"><img src="logo.png" alt="TGT"></div>
     <nav class="nav">
-      <a class="on"><svg class="i"><use href="#home"/></svg> INÍCIO</a>
-      <a><svg class="i"><use href="#users"/></svg> COMUNIDADE</a>
-      <a><svg class="i"><use href="#game"/></svg> STREAMERS</a>
-      <a><svg class="i"><use href="#trophy"/></svg> PONTOS</a>
-      <a><svg class="i"><use href="#cal"/></svg> AGENDA</a>
-      <a><svg class="i"><use href="#info"/></svg> SOBRE</a>
+      <a data-v="inicio" class="on" onclick="mostrar('inicio')"><svg class="i"><use href="#home"/></svg> INÍCIO</a>
+      <a data-v="comunidade" onclick="mostrar('comunidade')"><svg class="i"><use href="#users"/></svg> COMUNIDADE</a>
+      <a data-v="streamers" onclick="mostrar('streamers')"><svg class="i"><use href="#game"/></svg> STREAMERS</a>
+      <a data-v="pontos" onclick="mostrar('pontos')"><svg class="i"><use href="#trophy"/></svg> PONTOS</a>
+      <a data-v="agenda" onclick="mostrar('agenda')"><svg class="i"><use href="#cal"/></svg> AGENDA</a>
+      <a data-v="sobre" onclick="mostrar('sobre')"><svg class="i"><use href="#info"/></svg> SOBRE</a>
     </nav>
     <div class="numbers">
       <h5>TGT EM NÚMEROS</h5>
@@ -174,30 +174,69 @@
 
   <main class="main">
     <div class="top">
-      <nav class="menu"><a class="on">INÍCIO</a><a>COMUNIDADE</a><a>STREAMERS</a><a>PONTOS</a><a>AGENDA</a><a>SOBRE</a></nav>
+      <nav class="menu"><a data-v="inicio" class="on" onclick="mostrar('inicio')">INÍCIO</a><a data-v="comunidade" onclick="mostrar('comunidade')">COMUNIDADE</a><a data-v="streamers" onclick="mostrar('streamers')">STREAMERS</a><a data-v="pontos" onclick="mostrar('pontos')">PONTOS</a><a data-v="agenda" onclick="mostrar('agenda')">AGENDA</a><a data-v="sobre" onclick="mostrar('sobre')">SOBRE</a></nav>
       <span class="who">Olá, <b id="ap-nick">—</b></span>
       <button class="btn" onclick="location.href='disponibilidade.html'">MINHA DISPONIBILIDADE</button>
       <button class="btn outline" id="btn-admin" style="display:none" onclick="location.href='admin.html'">ADMIN</button>
       <button class="btn outline" onclick="sair()">SAIR</button>
     </div>
 
-    <section class="hero">
-      <img class="sword" src="logo.png" alt="">
-      <div>
-        <h1>MAIS QUE STREAMERS,<br><span class="gold">SOMOS UMA COMUNIDADE.</span></h1>
-        <p>A TGT é a casa de streamers que evoluem juntos. Conecte-se, colabore e cresça com a maior comunidade de creators do Brasil.</p>
-        <div class="ctas"><button class="btn">JUNTE-SE À COMUNIDADE</button><button class="btn outline">CONHEÇA OS STREAMERS</button></div>
+    <div id="v-inicio">
+      <section class="hero">
+        <img class="sword" src="logo.png" alt="">
+        <div>
+          <h1>MAIS QUE STREAMERS,<br><span class="gold">SOMOS UMA COMUNIDADE.</span></h1>
+          <p>A TGT é a casa de streamers que evoluem juntos. Conecte-se, colabore e cresça com a maior comunidade de creators do Brasil.</p>
+          <div class="ctas"><button class="btn" onclick="location.href='disponibilidade.html'">JUNTE-SE À COMUNIDADE</button><button class="btn outline" onclick="mostrar('streamers')">CONHEÇA OS STREAMERS</button></div>
+        </div>
+      </section>
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-h"><span class="dot"><svg class="i"><use href="#star"/></svg></span> STREAMERS DA COMUNIDADE <span class="more" id="s-count" onclick="mostrar('streamers')">VER TODOS</span></div>
+        <div class="streamers" id="streamers"></div>
       </div>
-    </section>
-
-    <div class="card" style="margin-bottom:16px">
-      <div class="sec-h"><span class="dot"><svg class="i"><use href="#star"/></svg></span> STREAMERS DA COMUNIDADE <span class="more" id="s-count"></span></div>
-      <div class="streamers" id="streamers"></div>
+      <div class="card">
+        <div class="sec-h"><span class="dot"><svg class="i"><use href="#cal"/></svg></span> AGENDA SEMANAL DE LIVES <span class="more" id="ag-info">SEMANA ATUAL</span></div>
+        <div class="agenda" id="agenda"></div>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="sec-h"><span class="dot"><svg class="i"><use href="#cal"/></svg></span> AGENDA SEMANAL DE LIVES <span class="more" id="ag-info">SEMANA ATUAL</span></div>
-      <div class="agenda" id="agenda"></div>
+    <div id="v-comunidade" class="hidden">
+      <div class="card" style="padding:26px">
+        <h2 style="margin:0 0 10px;font-family:Oswald;color:var(--gold);font-size:22px">COMUNIDADE TGT</h2>
+        <p style="color:var(--muted);max-width:620px">Bem-vindo à família! 🦅 Use o <b>chat ao lado</b> pra conversar com a galera em tempo real, acompanhe a <b>agenda</b>, suba no <b>ranking</b> e marque sua <b>disponibilidade</b>.</p>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="location.href='disponibilidade.html'">MARCAR MINHA DISPONIBILIDADE</button>
+          <button class="btn outline" onclick="mostrar('agenda')">VER AGENDA</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="v-streamers" class="hidden">
+      <div class="card">
+        <div class="sec-h"><span class="dot"><svg class="i"><use href="#game"/></svg></span> TODOS OS STREAMERS <span class="more" id="s-count2"></span></div>
+        <div id="full-streamers" style="padding:4px 18px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px"></div>
+      </div>
+    </div>
+
+    <div id="v-pontos" class="hidden">
+      <div class="card">
+        <div class="sec-h"><span class="dot"><svg class="i"><use href="#trophy"/></svg></span> RANKING DE PONTOS</div>
+        <div id="full-ranking" style="padding:6px 18px 20px"></div>
+      </div>
+    </div>
+
+    <div id="v-agenda" class="hidden">
+      <div class="card">
+        <div class="sec-h"><span class="dot"><svg class="i"><use href="#cal"/></svg></span> AGENDA SEMANAL COMPLETA <span class="more" id="ag-info2"></span></div>
+        <div class="agenda" id="full-agenda"></div>
+      </div>
+    </div>
+
+    <div id="v-sobre" class="hidden">
+      <div class="card" style="padding:26px">
+        <h2 style="margin:0 0 10px;font-family:Oswald;color:var(--gold);font-size:22px">SOBRE A TGT</h2>
+        <p style="color:var(--muted);max-width:660px">A <b>TGT — The Golden Team</b> é a maior comunidade de streamers do Brasil. Aqui a gente cresce junto: escala de lives organizada, colaborações, ranking, eventos e muito mais. Mais que streamers, somos uma comunidade. 🦅</p>
+      </div>
     </div>
   </main>
 
@@ -284,10 +323,8 @@
       return `<div class="stm"><div class="ring" style="background:linear-gradient(135deg,${PLAT[pl]},rgba(255,255,255,.1));box-shadow:0 0 15px ${PLAT[pl]}66">
         <div class="pic" style="background:${GRAD[pl]}">${ini(p.nick)}</div>${aoVivo(p.nick)?'<span class="live">LIVE</span>':''}${p.vip?'<span class="crown">👑</span>':''}</div>
         <div class="nm">${p.nick}</div><div class="pl">${pl.toUpperCase()}</div></div>`; }).join('')||'<div class="pl" style="padding:6px">Nenhum streamer ainda.</div>'; }
-  function agenda(){
-    let t='SEMANA ATUAL'; if(SEMANA){ const b=new Date(SEMANA+'T00:00:00'); const p2=n=>String(n).padStart(2,'0'); t='SEMANA '+p2(b.getDate())+'/'+p2(b.getMonth()+1); }
-    document.getElementById('ag-info').textContent = DEMO ? 'PRÉVIA DE EXEMPLO' : t;
-    let h='';
+  function agendaInfo(){ let t='SEMANA ATUAL'; if(SEMANA){ const b=new Date(SEMANA+'T00:00:00'); const p2=n=>String(n).padStart(2,'0'); t='SEMANA '+p2(b.getDate())+'/'+p2(b.getMonth()+1); } return DEMO?'PRÉVIA DE EXEMPLO':t; }
+  function agendaHTML(){ let h='';
     for(let d=0;d<7;d++){ const it=[],vis=new Set();
       SLOTS.forEach(s=>{ const o=PUB[s]||{}; for(const k in o){ const [dd,hh]=k.split('-').map(Number); if(dd===d){ const n=o[k]; const key=hh+'|'+n; if(!vis.has(key)){ vis.add(key); it.push({h:hh,n}); } } } });
       it.sort((a,b)=>a.h-b.h);
@@ -295,7 +332,27 @@
       if(!it.length) h+='<div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px 0">—</div>';
       it.forEach(e=>{ const pl=platDe(e.n); h+=`<div class="ev"><div class="t">${String(e.h).padStart(2,'0')}:00</div><div class="n">${isVip(e.n)?'👑 ':''}${e.n}</div><span class="pill ${pl}">${pl.toUpperCase()}</span></div>`; });
       h+='</div>'; }
-    document.getElementById('agenda').innerHTML=h;
+    return h; }
+  function agenda(){ document.getElementById('ag-info').textContent=agendaInfo(); document.getElementById('agenda').innerHTML=agendaHTML(); }
+
+  // ----- páginas completas (navegação do menu) -----
+  function cardStreamer(p){ const pl=platDe(p.nick); return `<div style="background:var(--raise);border:1px solid var(--bd);border-radius:12px;padding:14px;text-align:center">
+    <div style="width:62px;height:62px;border-radius:50%;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;font-family:Oswald;font-weight:700;font-size:18px;color:#1a1205;background:${GRAD[pl]};box-shadow:0 0 14px ${PLAT[pl]}55">${ini(p.nick)}</div>
+    <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.vip?'👑 ':''}${p.nick}</div>
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin:2px 0 9px">${pl}</div>
+    <a class="btn outline" style="font-size:11px;padding:6px 12px;display:inline-block" href="${p.link||'#'}" target="_blank" rel="noopener">VER CANAL</a></div>`; }
+  function renderStreamersFull(){ const box=document.getElementById('full-streamers'); document.getElementById('s-count2').textContent=PERFIS.length+' streamers';
+    box.innerHTML=[...PERFIS].sort((a,b)=>(b.vip===true)-(a.vip===true)).map(cardStreamer).join('')||'<div class="pl">Nenhum streamer.</div>'; }
+  function renderPontosFull(){ const c=contLives(); const arr=Object.entries(c).sort((a,b)=>b[1]-a[1]); const box=document.getElementById('full-ranking');
+    if(!arr.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">Sem dados ainda. Publique uma escala no painel.</div>'; return; }
+    box.innerHTML=arr.map(([n,t],i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(n)]}">${ini(n)}</div><div class="u">${isVip(n)?'👑 ':''}${n}</div><div class="pt">${(t*120).toLocaleString('pt-BR')}</div></div>`).join(''); }
+  function mostrar(v){
+    ['inicio','comunidade','streamers','pontos','agenda','sobre'].forEach(x=>{ const el=document.getElementById('v-'+x); if(el) el.classList.toggle('hidden',x!==v); });
+    document.querySelectorAll('[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
+    if(v==='streamers') renderStreamersFull();
+    if(v==='pontos') renderPontosFull();
+    if(v==='agenda'){ document.getElementById('full-agenda').innerHTML=agendaHTML(); document.getElementById('ag-info2').textContent=agendaInfo(); }
+    window.scrollTo(0,0);
   }
   function ranking(){ const c=contLives(); const arr=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10); const box=document.getElementById('ranking');
     if(!arr.length){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Sem dados ainda.</div>'; return; }
