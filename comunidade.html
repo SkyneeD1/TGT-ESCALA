@@ -175,8 +175,9 @@
   <main class="main">
     <div class="top">
       <nav class="menu"><a class="on">INÍCIO</a><a>COMUNIDADE</a><a>STREAMERS</a><a>PONTOS</a><a>AGENDA</a><a>SOBRE</a></nav>
-      <div class="iconbtn"><svg class="i"><use href="#search"/></svg></div>
       <span class="who">Olá, <b id="ap-nick">—</b></span>
+      <button class="btn" onclick="location.href='disponibilidade.html'">MINHA DISPONIBILIDADE</button>
+      <button class="btn outline" id="btn-admin" style="display:none" onclick="location.href='admin.html'">ADMIN</button>
       <button class="btn outline" onclick="sair()">SAIR</button>
     </div>
 
@@ -255,6 +256,7 @@
     const {data:perf}=await sb.from('profiles').select('nick').eq('user_id',u.id).maybeSingle();
     meuNick=perf?.nick||(ehAdmin?'Administração':u.email.replace('@tgt.com',''));
     document.getElementById('ap-nick').textContent=meuNick;
+    if(ehAdmin) document.getElementById('btn-admin').style.display='inline-block';
     document.getElementById('view-login').classList.add('hidden');
     document.getElementById('view-app').classList.remove('hidden');
     await carregar(); await carregarChat();

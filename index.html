@@ -3,259 +3,319 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Escala Dourada — Minha Disponibilidade</title>
+<title>TGT — Comunidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#120e07;--card:#211a0d;--card2:#2a2110;--border:rgba(255,193,7,.22);--border2:rgba(255,193,7,.45);
-        --muted:#b9a472;--gold:#ffd24a;--amber:#ff9d00;--txt:#f6ecd0;--ok:#2ecc71;--err:#ff6b6b;--shadow:0 10px 30px rgba(0,0,0,.45)}
-  *{box-sizing:border-box} body{margin:0;background:radial-gradient(1100px 560px at 50% -10%,rgba(255,157,0,.14),transparent 55%),var(--bg);
-        color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.5;padding:20px;min-height:100vh}
-  .wrap{max-width:1000px;margin:0 auto}
-  h1{font-size:26px;margin:0;background:linear-gradient(90deg,var(--amber),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
-  .sub{color:var(--muted);margin:2px 0 18px;font-size:13px}
-  .card{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
-  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px}
-  input{width:100%;background:#170f05;border:1px solid var(--border);border-radius:10px;color:var(--txt);padding:11px;font-size:14px;outline:none}
-  input:focus{border-color:var(--gold)}
-  .btn{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;border:none;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer;font-size:14px}
-  .btn:hover{filter:brightness(1.08)} .btn:active{transform:translateY(1px)}
-  .btn.save{background:linear-gradient(100deg,#0b8a3e,#2ecc71);color:#04210f;width:100%;padding:13px;font-size:15px}
-  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
-  .login-box{max-width:380px;margin:8vh auto 0} .login-box .card{padding:26px}
-  .msg{font-size:13px;margin-top:10px;min-height:18px}
-  .hidden{display:none}
-  .toprow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-  .toprow .who{flex:1;font-size:13px;color:var(--muted)} .toprow .who b{color:var(--gold)}
-  .seg{display:flex;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:14px}
-  .seg .opt{flex:1;padding:10px;border-radius:9px;text-align:center;font-weight:700;font-size:13px;cursor:pointer;color:var(--muted);transition:all .15s}
-  .seg .opt.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;box-shadow:var(--shadow)}
-  .legenda{font-size:12px;color:var(--muted);margin:4px 0 10px}
-  .grade-wrap{border:1px solid var(--border);border-radius:12px}
-  table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;user-select:none}
-  thead th{position:sticky;top:0;z-index:3;background:#241c0e;color:#fff;padding:9px 4px;cursor:pointer;border-bottom:1px solid var(--border2)}
-  thead th:first-child{position:sticky;left:0;z-index:4}
-  .hcol{position:sticky;left:0;z-index:2;color:var(--muted);font-family:'Consolas',monospace;font-weight:700;padding:7px 10px;background:#1d1609;border-right:1px solid var(--border);cursor:pointer;white-space:nowrap}
-  td{border-bottom:1px solid rgba(255,255,255,.04);text-align:center;padding:0}
-  td .cell{min-height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-  td .cell.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;font-weight:800;border-radius:7px;margin:2px}
-  td .cell:hover{background:rgba(255,210,74,.08)}
-  td.dawn{background:rgba(0,0,0,.18)} .dim{color:#5b4f30}
-  thead th.now-col{color:var(--gold)}
-  .tabs{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap}
-  .tab{padding:7px 13px;border-radius:999px;border:1px solid var(--border);background:rgba(0,0,0,.22);color:var(--muted);font-weight:700;cursor:pointer;font-size:13px}
-  .tab.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;border-color:transparent}
-  .tab.vip.on{background:linear-gradient(100deg,#b8860b,#ffd24a);color:#3a2a00}
-  .tab .cnt{font-size:10px;opacity:.8;margin-left:5px;font-family:'Consolas',monospace}
-  td .cell.has{color:#3a2a00;font-weight:700;border-radius:7px;margin:2px;min-height:26px;font-size:10px;padding:2px 1px;line-height:1.1;cursor:default}
-  td .cell.has.kick{background:linear-gradient(100deg,#0b8a3e,#2ecc71);color:#04210f}
-  td .cell.has.twitch{background:linear-gradient(100deg,#7a2bd6,#b86bff);color:#fff}
-  td .cell.has.youtube{background:linear-gradient(100deg,#c81d1d,#ff5a5a);color:#fff}
-  td .cell.has.outro{background:linear-gradient(100deg,var(--amber),var(--gold))}
-  td .cell.me{box-shadow:0 0 0 2px #fff inset;border-radius:7px}
-  .btn.foco-on{background:linear-gradient(100deg,#7a2bd6,#b86bff);color:#fff}
-  /* minha escala */
-  .dia-h{margin:14px 0 6px;font-weight:800;color:var(--gold);font-size:14px;border-bottom:1px solid var(--border);padding-bottom:4px}
-  .esc-row{display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(0,0,0,.2);margin-bottom:6px}
-  .esc-hora{font-family:'Consolas',monospace;font-weight:800;color:#fff;font-size:15px;min-width:54px}
-  .esc-lista{font-weight:700;color:var(--amber)} .esc-lista.vip{color:var(--gold)}
-  #toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--border2);border-left:4px solid var(--gold);border-radius:11px;padding:13px 17px;font-weight:600;box-shadow:var(--shadow);display:none;z-index:99}
+  :root{
+    --bg:#0a0a0c; --side:#0e0e11; --card:#17161a; --card2:#1d1c21; --raise:#24232a;
+    --bd:rgba(255,200,70,.12); --bd2:rgba(255,200,70,.28);
+    --muted:#988a64; --muted2:#665b3f; --gold:#ffc83d; --amber:#ff9d00; --txt:#f4ecd6;
+    --kick:#4fe018; --twitch:#a06bff; --youtube:#ff4d4d; --ok:#39d98a; --err:#ff6b6b;
+    --sh:0 16px 44px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--txt);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.5;
+    background:radial-gradient(820px 480px at 72% -10%,rgba(255,160,0,.08),transparent 60%),var(--bg)}
+  h1,h2,h3,h4,.osw{font-family:'Oswald',sans-serif;letter-spacing:.5px}
+  a{color:inherit;text-decoration:none}
+  ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:rgba(255,200,70,.22);border-radius:8px}
+  .gold{color:var(--gold)} .hidden{display:none!important}
+  svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .btn{font-family:'Oswald';background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2700;border:none;border-radius:9px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:13px;letter-spacing:.5px;transition:.15s}
+  .btn:hover{filter:brightness(1.07)} .btn.outline{background:transparent;color:var(--gold);border:1px solid var(--bd2)}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
+
+  .login{max-width:380px;margin:9vh auto 0;text-align:center;padding:0 16px}
+  .login img{height:120px;filter:drop-shadow(0 8px 28px rgba(255,170,0,.55))}
+  .login h2{font-family:'Oswald';font-size:28px;letter-spacing:2px;margin:10px 0 0;color:var(--gold)}
+  .login .box{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--bd2);border-radius:18px;padding:26px;margin-top:16px;text-align:left;box-shadow:var(--sh)}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:0 0 6px;font-weight:600}
+  input{width:100%;background:#0f0f12;border:1px solid var(--bd);border-radius:10px;color:var(--txt);padding:12px;font-size:14px;outline:none}
+  input:focus{border-color:var(--gold)} .msg{font-size:13px;margin-top:10px;min-height:18px}
+
+  .shell{display:grid;grid-template-columns:212px 1fr 322px;min-height:100vh}
+  .side{background:var(--side);border-right:1px solid var(--bd);padding:20px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  .logo{display:flex;justify-content:center;margin:0 0 22px}
+  .logo img{height:118px;filter:drop-shadow(0 6px 22px rgba(255,170,0,.55))}
+  .nav{display:flex;flex-direction:column;gap:3px}
+  .nav a{display:flex;align-items:center;gap:13px;padding:11px 13px;border-radius:10px;color:var(--muted);font-weight:600;font-size:13.5px;cursor:pointer;transition:.13s;position:relative}
+  .nav a:hover{background:rgba(255,200,70,.05);color:var(--txt)}
+  .nav a.on{color:var(--gold);background:linear-gradient(100deg,rgba(255,160,0,.16),transparent)}
+  .nav a.on::before{content:'';position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:3px;background:var(--gold)}
+  .numbers{margin-top:auto;background:var(--card);border:1px solid var(--bd);border-radius:13px;padding:15px}
+  .numbers h5{font-family:'Oswald';margin:0 0 13px;font-size:12px;letter-spacing:1px;color:var(--gold)}
+  .nrow{display:flex;align-items:center;gap:11px;margin-bottom:12px} .nrow:last-child{margin-bottom:0}
+  .nrow .ic{color:var(--gold);opacity:.9} .nrow .v{font-family:'Oswald';font-weight:700;font-size:18px;line-height:1}
+  .nrow .l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+  .main{padding:16px 24px 30px;min-width:0}
+  .top{display:flex;align-items:center;gap:26px;height:54px;margin-bottom:8px}
+  .top .menu{display:flex;gap:26px;flex:1;justify-content:center}
+  .top .menu a{font-family:'Oswald';font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;letter-spacing:.5px;padding-bottom:5px;border-bottom:2px solid transparent}
+  .top .menu a.on{color:var(--gold);border-color:var(--gold)}
+  .who{font-size:13px;color:var(--muted)} .who b{color:var(--gold)}
+  .iconbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer}
+  .card{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--bd);border-radius:16px;box-shadow:var(--sh)}
+  .sec-h{display:flex;align-items:center;gap:9px;padding:15px 18px;font-family:'Oswald';font-size:15px;font-weight:600;letter-spacing:.6px}
+  .sec-h .dot{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--amber),var(--gold));display:flex;align-items:center;justify-content:center;color:#3a2700}
+  .sec-h .more{margin-left:auto;font-family:'Inter';font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.8px;cursor:pointer}
+
+  .hero{position:relative;overflow:hidden;border-radius:18px;border:1px solid var(--bd);margin-bottom:16px;padding:44px 38px;min-height:300px;display:flex;align-items:center;
+    background:radial-gradient(540px 380px at 80% 40%,rgba(255,165,0,.26),transparent 60%),linear-gradient(150deg,#1a1610,#0c0b0a)}
+  .hero .sword{position:absolute;right:40px;top:50%;transform:translateY(-50%);height:300px;filter:drop-shadow(0 12px 50px rgba(255,170,0,.65))}
+  .hero h1{font-size:44px;line-height:1.02;margin:0 0 16px;font-weight:700;max-width:520px;font-family:'Oswald'}
+  .hero p{color:#cdbf98;max-width:400px;margin:0 0 22px;font-size:14.5px}
+  .hero .ctas{display:flex;gap:12px;flex-wrap:wrap}
+  @media(max-width:860px){.hero .sword{opacity:.12}}
+
+  .streamers{display:flex;gap:18px;padding:4px 18px 18px;overflow-x:auto;align-items:flex-start}
+  .stm{flex:0 0 auto;width:92px;text-align:center}
+  .stm .ring{width:80px;height:80px;border-radius:50%;margin:0 auto 8px;padding:3px;position:relative}
+  .stm .pic{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Oswald';font-weight:700;font-size:22px;color:#1a1205}
+  .stm .live{position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);background:#ff2f2f;color:#fff;font-size:8px;font-weight:800;font-family:'Inter';padding:2px 7px;border-radius:5px;letter-spacing:.5px;box-shadow:0 0 10px rgba(255,47,47,.6)}
+  .stm .crown{position:absolute;top:-4px;right:0;font-size:15px}
+  .stm .nm{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stm .pl{font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:2px}
+
+  .agenda{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:4px 18px 18px}
+  .col h6{font-family:'Oswald';margin:0 0 8px;text-align:center;font-size:12px;color:#c9bd97;letter-spacing:1px;font-weight:600}
+  .ev{background:var(--raise);border:1px solid var(--bd);border-radius:9px;padding:7px 8px;margin-bottom:7px}
+  .ev .t{font-size:10px;color:var(--muted);font-weight:600}
+  .ev .n{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:1px 0 4px}
+  .pill{font-size:8px;font-weight:800;font-family:'Inter';padding:2px 6px;border-radius:4px;letter-spacing:.4px;display:inline-block}
+  .pill.kick{background:var(--kick);color:#062b00}.pill.twitch{background:var(--twitch);color:#fff}.pill.youtube{background:var(--youtube);color:#fff}.pill.outro{background:var(--gold);color:#3a2700}
+
+  .right{background:var(--side);border-left:1px solid var(--bd);padding:16px 14px;display:flex;flex-direction:column;gap:14px;position:sticky;top:0;height:100vh;overflow:auto}
+  .panel{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--bd);border-radius:14px;padding:14px}
+  .panel-h{display:flex;align-items:center;gap:8px;font-family:'Oswald';font-size:13px;font-weight:600;letter-spacing:.6px;color:var(--gold);margin-bottom:12px}
+  .panel-h .more,.panel-h .cnt{margin-left:auto;font-family:'Inter';font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.5px}
+  .ap{display:flex;align-items:center;gap:10px;padding:7px 0}
+  .ap .av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;font-family:'Oswald'}
+  .ap .nm{flex:1;font-size:13px;font-weight:600}
+  .rk{display:flex;align-items:center;gap:10px;padding:6px 0}
+  .rk .p{width:18px;font-family:'Oswald';font-weight:700;text-align:center;color:var(--muted)}
+  .rk:nth-child(1) .p{color:#ffd700}.rk:nth-child(2) .p{color:#dfe4e8}.rk:nth-child(3) .p{color:#e0954a}
+  .rk .av{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#1a1205;font-family:'Oswald'}
+  .rk .u{flex:1;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rk .pt{font-family:'Oswald';color:var(--gold);font-weight:700;font-size:13px}
+  .chat{flex:1;display:flex;flex-direction:column;min-height:170px}
+  .msgs{flex:1;overflow:auto;display:flex;flex-direction:column;gap:11px;font-size:13px}
+  .msgs .m b{color:var(--gold)}
+  .cin{display:flex;align-items:center;gap:8px;margin-top:12px;background:#0f0f12;border:1px solid var(--bd);border-radius:10px;padding:9px 12px}
+  .cin input{flex:1;background:none;border:none;color:var(--txt);outline:none;font-size:13px}
+  .cin .snd{color:var(--gold);cursor:pointer}
+
+  footer{grid-column:1/-1;border-top:1px solid var(--bd);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;color:var(--muted2);font-size:11px}
+  footer img{height:38px;vertical-align:middle;margin-right:8px}
+  footer .soc{display:flex;gap:14px;color:var(--muted)}
+
+  @media(max-width:1100px){
+    .shell{grid-template-columns:1fr} .side{display:none}
+    .right{position:static;height:auto;border-left:none;border-top:1px solid var(--bd)}
+    .top .menu{display:none} .agenda{grid-template-columns:repeat(2,1fr)}
+    .hero{padding:30px 22px;min-height:auto} .hero h1{font-size:32px} .hero .sword{opacity:.12}
+  }
+  @media(max-width:560px){.main{padding:14px}.agenda{grid-template-columns:1fr}.hero h1{font-size:26px}.top{flex-wrap:wrap;height:auto;gap:10px}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="home" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></symbol>
+  <symbol id="users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="game" viewBox="0 0 24 24"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="2"/></symbol>
+  <symbol id="trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+  <symbol id="cal" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+  <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+  <symbol id="radio" viewBox="0 0 24 24"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></symbol>
+  <symbol id="crown" viewBox="0 0 24 24"><path d="M11.56 3.27a.5.5 0 0 1 .88 0l3.39 5.6a1 1 0 0 0 1.51.3L21.18 5.5a.5.5 0 0 1 .8.52l-2.84 10.25a1 1 0 0 1-.95.73H5.81a1 1 0 0 1-.96-.73L2.02 6.02a.5.5 0 0 1 .8-.52l4.27 3.66a1 1 0 0 0 1.52-.3z"/></symbol>
+  <symbol id="shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
+  <symbol id="msg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="send" viewBox="0 0 24 24"><path d="M14.54 21.69a.5.5 0 0 0 .94-.03l6.5-19a.5.5 0 0 0-.64-.63l-19 6.5a.5.5 0 0 0-.02.94l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+</defs></svg>
 
-  <!-- LOGIN -->
-  <div id="view-login" class="login-box">
-    <div style="text-align:center;margin-bottom:14px">
-      <img src="logo.png" alt="TGT" style="height:96px;filter:drop-shadow(0 4px 16px rgba(255,180,0,.4))">
-      <h1 style="margin-top:8px">ESCALA DOURADA</h1>
-      <p class="sub">Entre pra marcar seus horários de live</p>
-    </div>
-    <div class="card">
-      <label>Usuário</label>
-      <input id="l-nick" placeholder="seu nick" autocomplete="username" onkeydown="if(event.key==='Enter')entrar()">
-      <label style="margin-top:12px">Senha</label>
-      <input id="l-senha" type="password" placeholder="sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()">
-      <button class="btn" style="width:100%;margin-top:16px" onclick="entrar()">Entrar</button>
-      <div class="msg" id="l-msg"></div>
-    </div>
+<div id="view-login" class="login">
+  <img src="logo.png" alt="TGT">
+  <h2>COMUNIDADE TGT</h2>
+  <div class="box">
+    <label>Usuário</label>
+    <input id="l-nick" placeholder="seu nick (ou admin@tgt.com)" onkeydown="if(event.key==='Enter')entrar()">
+    <label style="margin-top:13px">Senha</label>
+    <input id="l-senha" type="password" placeholder="sua senha" onkeydown="if(event.key==='Enter')entrar()">
+    <button class="btn" style="width:100%;margin-top:18px" onclick="entrar()">ENTRAR</button>
+    <div class="msg" id="l-msg"></div>
   </div>
-
-  <!-- APP -->
-  <div id="view-app" class="hidden">
-    <div class="toprow">
-      <img src="logo.png" alt="TGT" style="height:44px">
-      <div class="who">Olá, <b id="ap-nick">—</b> 👋</div>
-      <button class="btn ghost" onclick="sair()">Sair</button>
-    </div>
-
-    <div class="seg">
-      <div class="opt on" id="tab-disp" onclick="verAba('disp')">📝 Minha Disponibilidade</div>
-      <div class="opt" id="tab-esc" onclick="verAba('esc')">📅 Minha Escala</div>
-    </div>
-
-    <!-- ABA: disponibilidade -->
-    <div id="aba-disp">
-      <p class="sub">Clique e arraste nas horas que você consegue fazer live (segunda a domingo). Não esquece de <b>Salvar</b>.</p>
-      <div class="card">
-        <label>Link do seu canal (Kick, Twitch ou YouTube)</label>
-        <input id="ap-link" placeholder="https://kick.com/seunick">
-      </div>
-      <div class="card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap">
-        <div style="flex:1;min-width:200px">
-          <div style="font-weight:800;color:var(--gold);font-size:15px">🌙 Folga</div>
-          <div class="sub" style="margin:3px 0 0">Ative apenas quando <b>não for fazer live</b>. Assim, quando a administração gerar a escala, você não é selecionado.</div>
-        </div>
-        <button class="btn ghost" id="btn-folga" onclick="toggleFolga()">Folga: OFF</button>
-      </div>
-      <div class="card">
-        <div class="legenda">🟡 = disponível · clique numa célula pra ligar/desligar · clique no <b>dia</b> ou na <b>hora</b> pra marcar a linha/coluna inteira.</div>
-        <div class="grade-wrap"><div id="grade"></div></div>
-        <button class="btn save" style="margin-top:14px" onclick="salvar()">💾 Salvar minha disponibilidade</button>
-        <div class="msg" id="ap-msg"></div>
-      </div>
-    </div>
-
-    <!-- ABA: minha escala (só leitura) -->
-    <div id="aba-esc" class="hidden">
-      <p class="sub">A escala da semana inteira (só leitura). Ative o <b>🎯 Modo Foco</b> pra esconder os outros e ver só os seus horários.</p>
-      <div class="card">
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-          <button class="btn" id="btn-foco" onclick="toggleFoco()">🎯 Modo Foco: OFF</button>
-          <span class="sub" id="esc-info" style="margin:0;flex:1;min-width:160px"></span>
-        </div>
-        <div class="tabs" id="esc-tabs"></div>
-        <div class="grade-wrap"><div id="esc-grade">Carregando...</div></div>
-      </div>
-    </div>
-
-  </div>
-
 </div>
-<div id="toast"></div>
+
+<div id="view-app" class="shell hidden">
+  <aside class="side">
+    <div class="logo"><img src="logo.png" alt="TGT"></div>
+    <nav class="nav">
+      <a class="on"><svg class="i"><use href="#home"/></svg> INÍCIO</a>
+      <a><svg class="i"><use href="#users"/></svg> COMUNIDADE</a>
+      <a><svg class="i"><use href="#game"/></svg> STREAMERS</a>
+      <a><svg class="i"><use href="#trophy"/></svg> PONTOS</a>
+      <a><svg class="i"><use href="#cal"/></svg> AGENDA</a>
+      <a><svg class="i"><use href="#info"/></svg> SOBRE</a>
+    </nav>
+    <div class="numbers">
+      <h5>TGT EM NÚMEROS</h5>
+      <div class="nrow"><span class="ic"><svg class="i"><use href="#users"/></svg></span><div><div class="v" id="n-membros">—</div><div class="l">Streamers</div></div></div>
+      <div class="nrow"><span class="ic"><svg class="i"><use href="#radio"/></svg></span><div><div class="v" id="n-lives">—</div><div class="l">Lives na semana</div></div></div>
+      <div class="nrow"><span class="ic"><svg class="i"><use href="#cal"/></svg></span><div><div class="v">6</div><div class="l">Listas</div></div></div>
+      <div class="nrow"><span class="ic"><svg class="i"><use href="#crown"/></svg></span><div><div class="v" id="n-vip">—</div><div class="l">VIPs</div></div></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <nav class="menu"><a class="on">INÍCIO</a><a>COMUNIDADE</a><a>STREAMERS</a><a>PONTOS</a><a>AGENDA</a><a>SOBRE</a></nav>
+      <span class="who">Olá, <b id="ap-nick">—</b></span>
+      <button class="btn" onclick="location.href='disponibilidade.html'">MINHA DISPONIBILIDADE</button>
+      <button class="btn outline" id="btn-admin" style="display:none" onclick="location.href='admin.html'">ADMIN</button>
+      <button class="btn outline" onclick="sair()">SAIR</button>
+    </div>
+
+    <section class="hero">
+      <img class="sword" src="logo.png" alt="">
+      <div>
+        <h1>MAIS QUE STREAMERS,<br><span class="gold">SOMOS UMA COMUNIDADE.</span></h1>
+        <p>A TGT é a casa de streamers que evoluem juntos. Conecte-se, colabore e cresça com a maior comunidade de creators do Brasil.</p>
+        <div class="ctas"><button class="btn">JUNTE-SE À COMUNIDADE</button><button class="btn outline">CONHEÇA OS STREAMERS</button></div>
+      </div>
+    </section>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="sec-h"><span class="dot"><svg class="i"><use href="#star"/></svg></span> STREAMERS DA COMUNIDADE <span class="more" id="s-count"></span></div>
+      <div class="streamers" id="streamers"></div>
+    </div>
+
+    <div class="card">
+      <div class="sec-h"><span class="dot"><svg class="i"><use href="#cal"/></svg></span> AGENDA SEMANAL DE LIVES <span class="more" id="ag-info">SEMANA ATUAL</span></div>
+      <div class="agenda" id="agenda"></div>
+    </div>
+  </main>
+
+  <aside class="right">
+    <div class="panel" id="card-aprov" style="display:none">
+      <div class="panel-h"><svg class="i"><use href="#shield"/></svg> APROVAÇÕES <span class="cnt" id="ap-count"></span></div>
+      <div id="aprov"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><svg class="i"><use href="#trophy"/></svg> RANKING DE PONTOS <span class="cnt">lives/semana</span></div>
+      <div id="ranking"></div>
+    </div>
+    <div class="panel chat">
+      <div class="panel-h"><svg class="i"><use href="#msg"/></svg> CHAT DA COMUNIDADE</div>
+      <div class="msgs" id="chat"></div>
+      <div class="cin"><input id="chat-in" placeholder="Digite sua mensagem..." onkeydown="if(event.key==='Enter')enviarMsg()"><span class="snd" onclick="enviarMsg()"><svg class="i"><use href="#send"/></svg></span></div>
+    </div>
+  </aside>
+
+  <footer>
+    <span><img src="logo.png" alt="TGT">© 2026 TGT COMMUNITY. TODOS OS DIREITOS RESERVADOS.</span>
+    <span class="soc">X · Instagram · YouTube · Discord</span>
+  </footer>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script>
+  const sb=window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  const ADMIN=window.ADMIN_EMAIL;
   const DIAS=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
   const SLOTS=['A','B','C','D','E','F'];
-  const romano = s => s;   // mostra a letra (A,B,C...) em vez de I,II,III
-  const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  let prefs = new Set();
-  let pintando=false, pintMode=true, user=null, meuNick='', meuFolga=false;
+  let PERFIS=[], PUB={}, SEMANA=null, DEMO=false, meuNick='', ehAdmin=false, chatSub=null;
 
-  function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2600); }
-  const emailDe = nick => nick.toLowerCase().trim()+'@tgt.com';
+  const ini=n=>{ const p=String(n||'?').replace(/_/g,' ').split(' ').filter(Boolean); return ((p[0]||'?')[0]+(p[1]?p[1][0]:(p[0]||'  ')[1]||'')).toUpperCase(); };
+  const PLAT={kick:'#4fe018',twitch:'#a06bff',youtube:'#ff4d4d',outro:'#ffc83d'};
+  const GRAD={kick:'linear-gradient(135deg,#4fe018,#0b8a3e)',twitch:'linear-gradient(135deg,#a06bff,#5a2bd6)',youtube:'linear-gradient(135deg,#ff5a5a,#a30000)',outro:'linear-gradient(135deg,#ffd24a,#ff7a00)'};
+  function platDe(nick){ const links=PUB.__links||{}; let l=links[nick]; if(!l){ const p=PERFIS.find(x=>x.nick===nick); l=p&&p.link; } l=String(l||'').toLowerCase();
+    if(l.includes('twitch.tv'))return'twitch'; if(l.includes('youtube')||l.includes('youtu.be'))return'youtube'; if(l.includes('kick.com'))return'kick'; return'outro'; }
+  function isVip(nick){ const p=PERFIS.find(x=>x.nick===nick); return p&&p.vip===true; }
 
   async function entrar(){
-    const nick=document.getElementById('l-nick').value.trim(); const senha=document.getElementById('l-senha').value;
-    const msg=document.getElementById('l-msg');
+    const nick=document.getElementById('l-nick').value.trim(); const senha=document.getElementById('l-senha').value; const msg=document.getElementById('l-msg');
     if(!nick||!senha){ msg.style.color='var(--err)'; msg.textContent='Preencha usuário e senha.'; return; }
     msg.style.color='var(--muted)'; msg.textContent='Entrando...';
-    const {error}=await sb.auth.signInWithPassword({ email:emailDe(nick), password:senha });
+    const email=nick.includes('@')?nick.toLowerCase():nick.toLowerCase()+'@tgt.com';
+    const {error}=await sb.auth.signInWithPassword({ email, password:senha });
     if(error){ msg.style.color='var(--err)'; msg.textContent='Usuário ou senha inválidos.'; return; }
-    await carregarApp();
+    await iniciar();
   }
   async function sair(){ await sb.auth.signOut(); location.reload(); }
 
-  function atualizaBtnFolga(){ const b=document.getElementById('btn-folga'); if(!b)return; b.textContent='Folga: '+(meuFolga?'ON':'OFF'); b.classList.toggle('foco-on',meuFolga); }
-  async function toggleFolga(){
-    meuFolga=!meuFolga; atualizaBtnFolga();
-    const {error}=await sb.from('profiles').update({ folga:meuFolga, updated_at:new Date().toISOString() }).eq('user_id',user.id);
-    if(error){ meuFolga=!meuFolga; atualizaBtnFolga(); toast('Erro ao salvar folga.'); return; }
-    toast(meuFolga?'🌙 Folga ativada — você não entra na escala automática.':'✅ Folga desativada.');
-  }
-
-  function verAba(a){
-    document.getElementById('tab-disp').classList.toggle('on',a==='disp');
-    document.getElementById('tab-esc').classList.toggle('on',a==='esc');
-    document.getElementById('aba-disp').classList.toggle('hidden',a!=='disp');
-    document.getElementById('aba-esc').classList.toggle('hidden',a!=='esc');
-    if(a==='esc') carregarMinhaEscala();
-  }
-
-  async function carregarApp(){
-    const {data:{user:u}} = await sb.auth.getUser();
-    if(!u) return; user=u;
-    const {data:perf} = await sb.from('profiles').select('nick,link,folga').eq('user_id',u.id).maybeSingle();
-    meuNick = perf?.nick || u.email.replace('@tgt.com','');
+  async function iniciar(){
+    const {data:{user:u}}=await sb.auth.getUser(); if(!u) return;
+    ehAdmin=u.email===ADMIN;
+    const {data:perf}=await sb.from('profiles').select('nick').eq('user_id',u.id).maybeSingle();
+    meuNick=perf?.nick||(ehAdmin?'Administração':u.email.replace('@tgt.com',''));
     document.getElementById('ap-nick').textContent=meuNick;
-    document.getElementById('ap-link').value = perf?.link || '';
-    meuFolga = perf?.folga===true; atualizaBtnFolga();
-    const {data:disp} = await sb.from('disponibilidade').select('prefs').eq('user_id',u.id).maybeSingle();
-    prefs = new Set(Array.isArray(disp?.prefs)?disp.prefs:[]);
+    if(ehAdmin) document.getElementById('btn-admin').style.display='inline-block';
     document.getElementById('view-login').classList.add('hidden');
     document.getElementById('view-app').classList.remove('hidden');
-    renderGrade();
+    await carregar(); await carregarChat();
   }
 
-  function renderGrade(){
-    let h='<table><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th onclick="selDia(${i})">${d}</th>`).join('')+'</tr></thead><tbody>';
-    for(let hora=0;hora<24;hora++){
-      h+=`<tr><td class="hcol" onclick="selHora(${hora})">${String(hora).padStart(2,'0')}:00</td>`;
-      for(let d=0;d<7;d++){ const k=d+'-'+hora; const on=prefs.has(k); const dawn=hora<7;
-        h+=`<td class="${dawn?'dawn':''}" onmousedown="cd('${k}',event)" onmouseenter="ce('${k}')"><div class="cell ${on?'on':''}">${on?'🟡':'<span class=dim>·</span>'}</div></td>`; }
-      h+='</tr>'; }
-    document.getElementById('grade').innerHTML=h+'</tbody></table>';
+  async function carregar(){
+    const r1=await sb.from('profiles').select('nick,link,folga,ativo,vip'); PERFIS=(r1.data||[]).filter(p=>p.ativo!==false);
+    const r2=await sb.from('escala_pub').select('dados,semana_inicio').eq('id',1).maybeSingle();
+    PUB=(r2.data&&r2.data.dados)||{}; SEMANA=r2.data&&r2.data.semana_inicio;
+    DEMO=false;
+    if(!SLOTS.some(s=>PUB[s]&&Object.keys(PUB[s]).length) && PERFIS.length){ PUB=demo(); DEMO=true; }
+    numeros(); streamers(); agenda(); ranking(); aprov();
   }
-  function aplica(k){ if(pintMode) prefs.add(k); else prefs.delete(k); }
-  function cd(k,e){ e.preventDefault(); pintando=true; pintMode=!prefs.has(k); aplica(k); renderGrade(); }
-  function ce(k){ if(pintando){ aplica(k); renderGrade(); } }
-  document.addEventListener('mouseup',()=>pintando=false);
-  function selDia(d){ pintMode=true; for(let h=0;h<24;h++) prefs.add(d+'-'+h); renderGrade(); }
-  function selHora(h){ pintMode=true; for(let d=0;d<7;d++) prefs.add(d+'-'+h); renderGrade(); }
+  function demo(){ const d={__links:{}}; SLOTS.forEach(s=>d[s]={}); const hs=[9,12,15,18,21];
+    PERFIS.forEach((p,i)=>{ d.__links[p.nick]=p.link||''; d[SLOTS[i%6]][(i%7)+'-'+hs[i%hs.length]]=p.nick; d[SLOTS[(i+2)%6]][((i+3)%7)+'-'+hs[(i+2)%hs.length]]=p.nick; }); return d; }
+  function contLives(){ const c={}; SLOTS.forEach(s=>{ const o=PUB[s]||{}; for(const k in o){ const n=o[k]; if(n)c[n]=(c[n]||0)+1; } }); return c; }
+  function aoVivo(nick){ const nd=(new Date().getDay()+6)%7,nh=new Date().getHours(); for(const s of SLOTS){ if((PUB[s]||{})[nd+'-'+nh]===nick) return true; } return false; }
 
-  async function salvar(){
-    const msg=document.getElementById('ap-msg'); msg.style.color='var(--muted)'; msg.textContent='Salvando...';
-    const link=document.getElementById('ap-link').value.trim();
-    const e1 = await sb.from('profiles').update({ link, updated_at:new Date().toISOString() }).eq('user_id',user.id);
-    const e2 = await sb.from('disponibilidade').upsert({ user_id:user.id, nick:meuNick, prefs:[...prefs], updated_at:new Date().toISOString() });
-    if(e1.error||e2.error){ msg.style.color='var(--err)'; msg.textContent='Erro ao salvar: '+((e1.error||e2.error).message); return; }
-    msg.style.color='var(--ok)'; msg.textContent='✅ Salvo! ('+prefs.size+' horas marcadas)'; toast('💾 Disponibilidade salva!');
+  function numeros(){ document.getElementById('n-membros').textContent=PERFIS.length;
+    let l=0; SLOTS.forEach(s=>l+=Object.keys(PUB[s]||{}).length); document.getElementById('n-lives').textContent=l;
+    document.getElementById('n-vip').textContent=PERFIS.filter(p=>p.vip===true).length; }
+  function streamers(){ document.getElementById('s-count').textContent=PERFIS.length+' streamers';
+    const ord=[...PERFIS].sort((a,b)=>(b.vip===true)-(a.vip===true));
+    document.getElementById('streamers').innerHTML=ord.slice(0,18).map(p=>{ const pl=platDe(p.nick);
+      return `<div class="stm"><div class="ring" style="background:linear-gradient(135deg,${PLAT[pl]},rgba(255,255,255,.1));box-shadow:0 0 15px ${PLAT[pl]}66">
+        <div class="pic" style="background:${GRAD[pl]}">${ini(p.nick)}</div>${aoVivo(p.nick)?'<span class="live">LIVE</span>':''}${p.vip?'<span class="crown">👑</span>':''}</div>
+        <div class="nm">${p.nick}</div><div class="pl">${pl.toUpperCase()}</div></div>`; }).join('')||'<div class="pl" style="padding:6px">Nenhum streamer ainda.</div>'; }
+  function agenda(){
+    let t='SEMANA ATUAL'; if(SEMANA){ const b=new Date(SEMANA+'T00:00:00'); const p2=n=>String(n).padStart(2,'0'); t='SEMANA '+p2(b.getDate())+'/'+p2(b.getMonth()+1); }
+    document.getElementById('ag-info').textContent = DEMO ? 'PRÉVIA DE EXEMPLO' : t;
+    let h='';
+    for(let d=0;d<7;d++){ const it=[],vis=new Set();
+      SLOTS.forEach(s=>{ const o=PUB[s]||{}; for(const k in o){ const [dd,hh]=k.split('-').map(Number); if(dd===d){ const n=o[k]; const key=hh+'|'+n; if(!vis.has(key)){ vis.add(key); it.push({h:hh,n}); } } } });
+      it.sort((a,b)=>a.h-b.h);
+      h+=`<div class="col"><h6>${DIAS[d]}</h6>`;
+      if(!it.length) h+='<div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px 0">—</div>';
+      it.forEach(e=>{ const pl=platDe(e.n); h+=`<div class="ev"><div class="t">${String(e.h).padStart(2,'0')}:00</div><div class="n">${isVip(e.n)?'👑 ':''}${e.n}</div><span class="pill ${pl}">${pl.toUpperCase()}</span></div>`; });
+      h+='</div>'; }
+    document.getElementById('agenda').innerHTML=h;
   }
+  function ranking(){ const c=contLives(); const arr=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10); const box=document.getElementById('ranking');
+    if(!arr.length){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Sem dados ainda.</div>'; return; }
+    box.innerHTML=arr.map(([n,t],i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(n)]}">${ini(n)}</div><div class="u">${isVip(n)?'👑 ':''}${n}</div><div class="pt">${(t*120).toLocaleString('pt-BR')}</div></div>`).join(''); }
+  function aprov(){ if(!ehAdmin) return; document.getElementById('card-aprov').style.display='block';
+    document.getElementById('ap-count').textContent='0 pendentes';
+    document.getElementById('aprov').innerHTML='<div style="font-size:12px;color:var(--muted)">Nenhuma aprovação pendente.</div>'; }
 
-  // ---------- Minha Escala (grade da semana, só leitura, com Modo Foco) ----------
-  let escDados=null, escSlot='A', foco=false;
-  const VIPS=['E','F'];
-  function ehMeu(nick){ return String(nick||'').toLowerCase()===meuNick.toLowerCase(); }
-  function platDe(nick){ const lk=((escDados&&escDados.__links)||{})[nick]||''; const l=String(lk).toLowerCase();
-    if(l.includes('twitch.tv'))return'twitch'; if(l.includes('youtube')||l.includes('youtu.be'))return'youtube'; if(l.includes('kick.com'))return'kick'; return'outro'; }
-  function totalMeus(){ if(!escDados)return 0; let n=0; SLOTS.forEach(s=>{ const o=escDados[s]||{}; for(const k in o) if(ehMeu(o[k])) n++; }); return n; }
+  function linha(m){ const d=document.createElement('div'); d.className='m'; d.innerHTML=`<b>${m.nick}:</b> ${String(m.texto).replace(/</g,'&lt;')}`; return d; }
+  async function carregarChat(){ const box=document.getElementById('chat'); box.innerHTML='';
+    const {data,error}=await sb.from('chat_msgs').select('nick,texto,created_at').order('created_at',{ascending:true}).limit(60);
+    if(error){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Chat indisponível (rode o sql-comunidade.sql).</div>'; return; }
+    (data||[]).forEach(m=>box.appendChild(linha(m))); box.scrollTop=box.scrollHeight;
+    if(chatSub) sb.removeChannel(chatSub);
+    chatSub=sb.channel('chat-tgt').on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_msgs'},p=>{ box.appendChild(linha(p.new)); box.scrollTop=box.scrollHeight; }).subscribe();
+  }
+  async function enviarMsg(){ const i=document.getElementById('chat-in'); const t=i.value.trim(); if(!t)return; i.value='';
+    const {error}=await sb.from('chat_msgs').insert({ nick:meuNick, texto:t }); if(error){ i.value=t; alert('Erro: '+error.message); } }
 
-  async function carregarMinhaEscala(){
-    document.getElementById('esc-grade').innerHTML='Carregando...';
-    const {data,error} = await sb.from('escala_pub').select('semana_inicio,dados').eq('id',1).maybeSingle();
-    if(error){ document.getElementById('esc-grade').innerHTML='<p class="sub">Não consegui carregar a escala ('+error.message+').</p>'; return; }
-    const dados = data && data.dados;
-    if(!dados || !SLOTS.some(s=>dados[s] && Object.keys(dados[s]).length)){
-      escDados=null; document.getElementById('esc-tabs').innerHTML='';
-      document.getElementById('esc-grade').innerHTML='<p class="sub">Nenhuma escala publicada ainda. Quando a administração publicar, ela aparece aqui. 🟡</p>'; return;
-    }
-    escDados=dados; renderEscTabs(); renderEscGrade();
-  }
-  function toggleFoco(){ foco=!foco; const b=document.getElementById('btn-foco'); b.textContent='🎯 Modo Foco: '+(foco?'ON':'OFF'); b.classList.toggle('foco-on',foco); renderEscGrade(); }
-  function selEscSlot(s){ escSlot=s; renderEscTabs(); renderEscGrade(); }
-  function renderEscTabs(){
-    document.getElementById('esc-tabs').innerHTML = SLOTS.map(s=>{ const o=escDados[s]||{}; let n=0; for(const k in o) if(ehMeu(o[k])) n++; const vip=VIPS.includes(s);
-      return `<div class="tab ${vip?'vip':''} ${s===escSlot?'on':''}" onclick="selEscSlot('${s}')">${vip?'⭐ ':''}Lista ${romano(s)}${n?`<span class="cnt">${n} seu(s)</span>`:''}</div>`; }).join('');
-  }
-  function renderEscGrade(){
-    document.getElementById('esc-info').innerHTML = foco
-      ? `Só os <b style="color:var(--gold)">seus</b> horários — ${totalMeus()} live(s) na semana.`
-      : 'Escala completa — os seus aparecem com <b style="color:#fff">borda branca</b>.';
-    const nd=(new Date().getDay()+6)%7;
-    const obj=escDados[escSlot]||{};
-    let h='<table><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th class="${i===nd?'now-col':''}">${d}</th>`).join('')+'</tr></thead><tbody>';
-    for(let hora=0;hora<24;hora++){ const dawn=hora<7;
-      h+=`<tr><td class="hcol">${String(hora).padStart(2,'0')}:00</td>`;
-      for(let d=0;d<7;d++){ const k=d+'-'+hora; const nick=obj[k]; const meu=nick&&ehMeu(nick);
-        let cls='cell', inner='<span class=dim>·</span>';
-        if(nick && (!foco || meu)){ cls='cell has '+platDe(nick)+(meu?' me':''); inner=nick; }
-        h+=`<td class="${dawn?'dawn':''}"><div class="${cls}">${inner}</div></td>`; }
-      h+='</tr>'; }
-    document.getElementById('esc-grade').innerHTML=h+'</tbody></table>';
-  }
-
-  (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) carregarApp(); })();
+  (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) iniciar(); })();
 </script>
 </body>
 </html>

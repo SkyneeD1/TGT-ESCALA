@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Escala Dourada — Minha Disponibilidade</title>
+<style>
+  :root{--bg:#120e07;--card:#211a0d;--card2:#2a2110;--border:rgba(255,193,7,.22);--border2:rgba(255,193,7,.45);
+        --muted:#b9a472;--gold:#ffd24a;--amber:#ff9d00;--txt:#f6ecd0;--ok:#2ecc71;--err:#ff6b6b;--shadow:0 10px 30px rgba(0,0,0,.45)}
+  *{box-sizing:border-box} body{margin:0;background:radial-gradient(1100px 560px at 50% -10%,rgba(255,157,0,.14),transparent 55%),var(--bg);
+        color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.5;padding:20px;min-height:100vh}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:26px;margin:0;background:linear-gradient(90deg,var(--amber),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+  .sub{color:var(--muted);margin:2px 0 18px;font-size:13px}
+  .card{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px}
+  input{width:100%;background:#170f05;border:1px solid var(--border);border-radius:10px;color:var(--txt);padding:11px;font-size:14px;outline:none}
+  input:focus{border-color:var(--gold)}
+  .btn{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;border:none;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer;font-size:14px}
+  .btn:hover{filter:brightness(1.08)} .btn:active{transform:translateY(1px)}
+  .btn.save{background:linear-gradient(100deg,#0b8a3e,#2ecc71);color:#04210f;width:100%;padding:13px;font-size:15px}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+  .login-box{max-width:380px;margin:8vh auto 0} .login-box .card{padding:26px}
+  .msg{font-size:13px;margin-top:10px;min-height:18px}
+  .hidden{display:none}
+  .toprow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .toprow .who{flex:1;font-size:13px;color:var(--muted)} .toprow .who b{color:var(--gold)}
+  .seg{display:flex;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:14px}
+  .seg .opt{flex:1;padding:10px;border-radius:9px;text-align:center;font-weight:700;font-size:13px;cursor:pointer;color:var(--muted);transition:all .15s}
+  .seg .opt.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;box-shadow:var(--shadow)}
+  .legenda{font-size:12px;color:var(--muted);margin:4px 0 10px}
+  .grade-wrap{border:1px solid var(--border);border-radius:12px}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;user-select:none}
+  thead th{position:sticky;top:0;z-index:3;background:#241c0e;color:#fff;padding:9px 4px;cursor:pointer;border-bottom:1px solid var(--border2)}
+  thead th:first-child{position:sticky;left:0;z-index:4}
+  .hcol{position:sticky;left:0;z-index:2;color:var(--muted);font-family:'Consolas',monospace;font-weight:700;padding:7px 10px;background:#1d1609;border-right:1px solid var(--border);cursor:pointer;white-space:nowrap}
+  td{border-bottom:1px solid rgba(255,255,255,.04);text-align:center;padding:0}
+  td .cell{min-height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  td .cell.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;font-weight:800;border-radius:7px;margin:2px}
+  td .cell:hover{background:rgba(255,210,74,.08)}
+  td.dawn{background:rgba(0,0,0,.18)} .dim{color:#5b4f30}
+  thead th.now-col{color:var(--gold)}
+  .tabs{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+  .tab{padding:7px 13px;border-radius:999px;border:1px solid var(--border);background:rgba(0,0,0,.22);color:var(--muted);font-weight:700;cursor:pointer;font-size:13px}
+  .tab.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2a00;border-color:transparent}
+  .tab.vip.on{background:linear-gradient(100deg,#b8860b,#ffd24a);color:#3a2a00}
+  .tab .cnt{font-size:10px;opacity:.8;margin-left:5px;font-family:'Consolas',monospace}
+  td .cell.has{color:#3a2a00;font-weight:700;border-radius:7px;margin:2px;min-height:26px;font-size:10px;padding:2px 1px;line-height:1.1;cursor:default}
+  td .cell.has.kick{background:linear-gradient(100deg,#0b8a3e,#2ecc71);color:#04210f}
+  td .cell.has.twitch{background:linear-gradient(100deg,#7a2bd6,#b86bff);color:#fff}
+  td .cell.has.youtube{background:linear-gradient(100deg,#c81d1d,#ff5a5a);color:#fff}
+  td .cell.has.outro{background:linear-gradient(100deg,var(--amber),var(--gold))}
+  td .cell.me{box-shadow:0 0 0 2px #fff inset;border-radius:7px}
+  .btn.foco-on{background:linear-gradient(100deg,#7a2bd6,#b86bff);color:#fff}
+  /* minha escala */
+  .dia-h{margin:14px 0 6px;font-weight:800;color:var(--gold);font-size:14px;border-bottom:1px solid var(--border);padding-bottom:4px}
+  .esc-row{display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(0,0,0,.2);margin-bottom:6px}
+  .esc-hora{font-family:'Consolas',monospace;font-weight:800;color:#fff;font-size:15px;min-width:54px}
+  .esc-lista{font-weight:700;color:var(--amber)} .esc-lista.vip{color:var(--gold)}
+  #toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--border2);border-left:4px solid var(--gold);border-radius:11px;padding:13px 17px;font-weight:600;box-shadow:var(--shadow);display:none;z-index:99}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <div id="view-login" class="login-box">
+    <div style="text-align:center;margin-bottom:14px">
+      <img src="logo.png" alt="TGT" style="height:96px;filter:drop-shadow(0 4px 16px rgba(255,180,0,.4))">
+      <h1 style="margin-top:8px">ESCALA DOURADA</h1>
+      <p class="sub">Entre pra marcar seus horários de live</p>
+    </div>
+    <div class="card">
+      <label>Usuário</label>
+      <input id="l-nick" placeholder="seu nick" autocomplete="username" onkeydown="if(event.key==='Enter')entrar()">
+      <label style="margin-top:12px">Senha</label>
+      <input id="l-senha" type="password" placeholder="sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()">
+      <button class="btn" style="width:100%;margin-top:16px" onclick="entrar()">Entrar</button>
+      <div class="msg" id="l-msg"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="view-app" class="hidden">
+    <div class="toprow">
+      <img src="logo.png" alt="TGT" style="height:44px">
+      <div class="who">Olá, <b id="ap-nick">—</b> 👋</div>
+      <button class="btn ghost" onclick="sair()">Sair</button>
+    </div>
+
+    <div class="seg">
+      <div class="opt on" id="tab-disp" onclick="verAba('disp')">📝 Minha Disponibilidade</div>
+      <div class="opt" id="tab-esc" onclick="verAba('esc')">📅 Minha Escala</div>
+    </div>
+
+    <!-- ABA: disponibilidade -->
+    <div id="aba-disp">
+      <p class="sub">Clique e arraste nas horas que você consegue fazer live (segunda a domingo). Não esquece de <b>Salvar</b>.</p>
+      <div class="card">
+        <label>Link do seu canal (Kick, Twitch ou YouTube)</label>
+        <input id="ap-link" placeholder="https://kick.com/seunick">
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="font-weight:800;color:var(--gold);font-size:15px">🌙 Folga</div>
+          <div class="sub" style="margin:3px 0 0">Ative apenas quando <b>não for fazer live</b>. Assim, quando a administração gerar a escala, você não é selecionado.</div>
+        </div>
+        <button class="btn ghost" id="btn-folga" onclick="toggleFolga()">Folga: OFF</button>
+      </div>
+      <div class="card">
+        <div class="legenda">🟡 = disponível · clique numa célula pra ligar/desligar · clique no <b>dia</b> ou na <b>hora</b> pra marcar a linha/coluna inteira.</div>
+        <div class="grade-wrap"><div id="grade"></div></div>
+        <button class="btn save" style="margin-top:14px" onclick="salvar()">💾 Salvar minha disponibilidade</button>
+        <div class="msg" id="ap-msg"></div>
+      </div>
+    </div>
+
+    <!-- ABA: minha escala (só leitura) -->
+    <div id="aba-esc" class="hidden">
+      <p class="sub">A escala da semana inteira (só leitura). Ative o <b>🎯 Modo Foco</b> pra esconder os outros e ver só os seus horários.</p>
+      <div class="card">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+          <button class="btn" id="btn-foco" onclick="toggleFoco()">🎯 Modo Foco: OFF</button>
+          <span class="sub" id="esc-info" style="margin:0;flex:1;min-width:160px"></span>
+        </div>
+        <div class="tabs" id="esc-tabs"></div>
+        <div class="grade-wrap"><div id="esc-grade">Carregando...</div></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  const DIAS=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+  const SLOTS=['A','B','C','D','E','F'];
+  const romano = s => s;   // mostra a letra (A,B,C...) em vez de I,II,III
+  const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  let prefs = new Set();
+  let pintando=false, pintMode=true, user=null, meuNick='', meuFolga=false;
+
+  function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2600); }
+  const emailDe = nick => nick.toLowerCase().trim()+'@tgt.com';
+
+  async function entrar(){
+    const nick=document.getElementById('l-nick').value.trim(); const senha=document.getElementById('l-senha').value;
+    const msg=document.getElementById('l-msg');
+    if(!nick||!senha){ msg.style.color='var(--err)'; msg.textContent='Preencha usuário e senha.'; return; }
+    msg.style.color='var(--muted)'; msg.textContent='Entrando...';
+    const {error}=await sb.auth.signInWithPassword({ email:emailDe(nick), password:senha });
+    if(error){ msg.style.color='var(--err)'; msg.textContent='Usuário ou senha inválidos.'; return; }
+    await carregarApp();
+  }
+  async function sair(){ await sb.auth.signOut(); location.reload(); }
+
+  function atualizaBtnFolga(){ const b=document.getElementById('btn-folga'); if(!b)return; b.textContent='Folga: '+(meuFolga?'ON':'OFF'); b.classList.toggle('foco-on',meuFolga); }
+  async function toggleFolga(){
+    meuFolga=!meuFolga; atualizaBtnFolga();
+    const {error}=await sb.from('profiles').update({ folga:meuFolga, updated_at:new Date().toISOString() }).eq('user_id',user.id);
+    if(error){ meuFolga=!meuFolga; atualizaBtnFolga(); toast('Erro ao salvar folga.'); return; }
+    toast(meuFolga?'🌙 Folga ativada — você não entra na escala automática.':'✅ Folga desativada.');
+  }
+
+  function verAba(a){
+    document.getElementById('tab-disp').classList.toggle('on',a==='disp');
+    document.getElementById('tab-esc').classList.toggle('on',a==='esc');
+    document.getElementById('aba-disp').classList.toggle('hidden',a!=='disp');
+    document.getElementById('aba-esc').classList.toggle('hidden',a!=='esc');
+    if(a==='esc') carregarMinhaEscala();
+  }
+
+  async function carregarApp(){
+    const {data:{user:u}} = await sb.auth.getUser();
+    if(!u) return; user=u;
+    const {data:perf} = await sb.from('profiles').select('nick,link,folga').eq('user_id',u.id).maybeSingle();
+    meuNick = perf?.nick || u.email.replace('@tgt.com','');
+    document.getElementById('ap-nick').textContent=meuNick;
+    document.getElementById('ap-link').value = perf?.link || '';
+    meuFolga = perf?.folga===true; atualizaBtnFolga();
+    const {data:disp} = await sb.from('disponibilidade').select('prefs').eq('user_id',u.id).maybeSingle();
+    prefs = new Set(Array.isArray(disp?.prefs)?disp.prefs:[]);
+    document.getElementById('view-login').classList.add('hidden');
+    document.getElementById('view-app').classList.remove('hidden');
+    renderGrade();
+  }
+
+  function renderGrade(){
+    let h='<table><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th onclick="selDia(${i})">${d}</th>`).join('')+'</tr></thead><tbody>';
+    for(let hora=0;hora<24;hora++){
+      h+=`<tr><td class="hcol" onclick="selHora(${hora})">${String(hora).padStart(2,'0')}:00</td>`;
+      for(let d=0;d<7;d++){ const k=d+'-'+hora; const on=prefs.has(k); const dawn=hora<7;
+        h+=`<td class="${dawn?'dawn':''}" onmousedown="cd('${k}',event)" onmouseenter="ce('${k}')"><div class="cell ${on?'on':''}">${on?'🟡':'<span class=dim>·</span>'}</div></td>`; }
+      h+='</tr>'; }
+    document.getElementById('grade').innerHTML=h+'</tbody></table>';
+  }
+  function aplica(k){ if(pintMode) prefs.add(k); else prefs.delete(k); }
+  function cd(k,e){ e.preventDefault(); pintando=true; pintMode=!prefs.has(k); aplica(k); renderGrade(); }
+  function ce(k){ if(pintando){ aplica(k); renderGrade(); } }
+  document.addEventListener('mouseup',()=>pintando=false);
+  function selDia(d){ pintMode=true; for(let h=0;h<24;h++) prefs.add(d+'-'+h); renderGrade(); }
+  function selHora(h){ pintMode=true; for(let d=0;d<7;d++) prefs.add(d+'-'+h); renderGrade(); }
+
+  async function salvar(){
+    const msg=document.getElementById('ap-msg'); msg.style.color='var(--muted)'; msg.textContent='Salvando...';
+    const link=document.getElementById('ap-link').value.trim();
+    const e1 = await sb.from('profiles').update({ link, updated_at:new Date().toISOString() }).eq('user_id',user.id);
+    const e2 = await sb.from('disponibilidade').upsert({ user_id:user.id, nick:meuNick, prefs:[...prefs], updated_at:new Date().toISOString() });
+    if(e1.error||e2.error){ msg.style.color='var(--err)'; msg.textContent='Erro ao salvar: '+((e1.error||e2.error).message); return; }
+    msg.style.color='var(--ok)'; msg.textContent='✅ Salvo! ('+prefs.size+' horas marcadas)'; toast('💾 Disponibilidade salva!');
+  }
+
+  // ---------- Minha Escala (grade da semana, só leitura, com Modo Foco) ----------
+  let escDados=null, escSlot='A', foco=false;
+  const VIPS=['E','F'];
+  function ehMeu(nick){ return String(nick||'').toLowerCase()===meuNick.toLowerCase(); }
+  function platDe(nick){ const lk=((escDados&&escDados.__links)||{})[nick]||''; const l=String(lk).toLowerCase();
+    if(l.includes('twitch.tv'))return'twitch'; if(l.includes('youtube')||l.includes('youtu.be'))return'youtube'; if(l.includes('kick.com'))return'kick'; return'outro'; }
+  function totalMeus(){ if(!escDados)return 0; let n=0; SLOTS.forEach(s=>{ const o=escDados[s]||{}; for(const k in o) if(ehMeu(o[k])) n++; }); return n; }
+
+  async function carregarMinhaEscala(){
+    document.getElementById('esc-grade').innerHTML='Carregando...';
+    const {data,error} = await sb.from('escala_pub').select('semana_inicio,dados').eq('id',1).maybeSingle();
+    if(error){ document.getElementById('esc-grade').innerHTML='<p class="sub">Não consegui carregar a escala ('+error.message+').</p>'; return; }
+    const dados = data && data.dados;
+    if(!dados || !SLOTS.some(s=>dados[s] && Object.keys(dados[s]).length)){
+      escDados=null; document.getElementById('esc-tabs').innerHTML='';
+      document.getElementById('esc-grade').innerHTML='<p class="sub">Nenhuma escala publicada ainda. Quando a administração publicar, ela aparece aqui. 🟡</p>'; return;
+    }
+    escDados=dados; renderEscTabs(); renderEscGrade();
+  }
+  function toggleFoco(){ foco=!foco; const b=document.getElementById('btn-foco'); b.textContent='🎯 Modo Foco: '+(foco?'ON':'OFF'); b.classList.toggle('foco-on',foco); renderEscGrade(); }
+  function selEscSlot(s){ escSlot=s; renderEscTabs(); renderEscGrade(); }
+  function renderEscTabs(){
+    document.getElementById('esc-tabs').innerHTML = SLOTS.map(s=>{ const o=escDados[s]||{}; let n=0; for(const k in o) if(ehMeu(o[k])) n++; const vip=VIPS.includes(s);
+      return `<div class="tab ${vip?'vip':''} ${s===escSlot?'on':''}" onclick="selEscSlot('${s}')">${vip?'⭐ ':''}Lista ${romano(s)}${n?`<span class="cnt">${n} seu(s)</span>`:''}</div>`; }).join('');
+  }
+  function renderEscGrade(){
+    document.getElementById('esc-info').innerHTML = foco
+      ? `Só os <b style="color:var(--gold)">seus</b> horários — ${totalMeus()} live(s) na semana.`
+      : 'Escala completa — os seus aparecem com <b style="color:#fff">borda branca</b>.';
+    const nd=(new Date().getDay()+6)%7;
+    const obj=escDados[escSlot]||{};
+    let h='<table><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th class="${i===nd?'now-col':''}">${d}</th>`).join('')+'</tr></thead><tbody>';
+    for(let hora=0;hora<24;hora++){ const dawn=hora<7;
+      h+=`<tr><td class="hcol">${String(hora).padStart(2,'0')}:00</td>`;
+      for(let d=0;d<7;d++){ const k=d+'-'+hora; const nick=obj[k]; const meu=nick&&ehMeu(nick);
+        let cls='cell', inner='<span class=dim>·</span>';
+        if(nick && (!foco || meu)){ cls='cell has '+platDe(nick)+(meu?' me':''); inner=nick; }
+        h+=`<td class="${dawn?'dawn':''}"><div class="${cls}">${inner}</div></td>`; }
+      h+='</tr>'; }
+    document.getElementById('esc-grade').innerHTML=h+'</tbody></table>';
+  }
+
+  (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) carregarApp(); })();
+</script>
+</body>
+</html>
