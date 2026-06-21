@@ -279,9 +279,13 @@
     </div>
 
     <div id="v-sobre" class="hidden">
-      <div class="card" style="padding:26px">
-        <h2 style="margin:0 0 10px;font-family:Oswald;color:var(--gold);font-size:22px">SOBRE A TGT</h2>
-        <p style="color:var(--muted);max-width:660px">A <b>TGT — The Golden Team</b> é a maior comunidade de streamers do Brasil. Aqui a gente cresce junto: escala de lives organizada, colaborações, ranking, eventos e muito mais. Mais que streamers, somos uma comunidade. 🦅</p>
+      <div class="card" style="padding:26px;max-width:740px">
+        <div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;font-family:Oswald;color:var(--gold);font-size:22px">SOBRE A TGT</h2><button class="btn outline" id="btn-edit-sobre" style="display:none;margin-left:auto;padding:6px 12px;font-size:11px" onclick="editarSobre()">✏️ EDITAR</button></div>
+        <div id="sobre-texto" style="color:var(--muted);white-space:pre-wrap;margin-top:12px;line-height:1.7">Carregando...</div>
+        <div id="sobre-editor" class="hidden" style="margin-top:12px">
+          <textarea id="sobre-input" style="min-height:160px"></textarea>
+          <div style="margin-top:10px;display:flex;gap:8px"><button class="btn" onclick="salvarSobre()">SALVAR</button><button class="btn outline" onclick="cancelarSobre()">Cancelar</button></div>
+        </div>
       </div>
     </div>
 
@@ -408,7 +412,7 @@
     const {data:perf}=await sb.from('profiles').select('nick').eq('user_id',u.id).maybeSingle();
     meuNick=perf?.nick||(ehAdmin?'Administração':u.email.replace('@tgt.com',''));
     document.getElementById('ap-nick').textContent=meuNick;
-    if(ehAdmin){ document.getElementById('btn-admin').style.display='inline-block'; const na=document.getElementById('nav-admin'); if(na) na.style.display='flex'; }
+    if(ehAdmin){ document.getElementById('btn-admin').style.display='inline-block'; const na=document.getElementById('nav-admin'); if(na) na.style.display='flex'; const be=document.getElementById('btn-edit-sobre'); if(be) be.style.display='inline-block'; }
     document.getElementById('view-login').classList.add('hidden');
     document.getElementById('view-app').classList.remove('hidden');
     await carregar(); await carregarChat();
@@ -501,6 +505,7 @@
     if(v==='disp' && !dispLoaded) carregarDisp();
     if(v==='suporte') carregarMeusTickets();
     if(v==='admin') carregarTicketsAdmin();
+    if(v==='sobre') carregarSobre();
     window.scrollTo(0,0);
   }
 
@@ -630,6 +635,7 @@
       if(t.tipo==='compra' && t.lista!=null) vw=`<button class="btn" style="width:100%" onclick="marcarVendido(${id})">✅ MARCAR VENDIDO e escalar ${t.nick}</button>`;
       else vw=`<button class="btn outline" style="width:100%" onclick="resolverTicket2(${id})">marcar resolvido</button>`;
     } else if(t.status!=='aberto'){ vw=`<div style="text-align:center;color:#4fe018;font-size:12px">• ${t.status}</div>`; }
+    if(ehAdmin) vw+=`<button class="btn outline" style="width:100%;margin-top:8px;color:#ff9b9b;border-color:rgba(255,80,80,.4)" onclick="excluirTicket(${id})">🗑️ EXCLUIR TICKET</button>`;
     document.getElementById('tk-vendido-wrap').innerHTML = vw?('<div style="padding:0 16px 10px">'+vw+'</div>'):'';
     document.getElementById('tk-modal').classList.remove('hidden');
     const box=document.getElementById('tk-thread'); box.innerHTML='';
@@ -642,6 +648,13 @@
   async function enviarTicketMsg(){ const i=document.getElementById('tk-reply'); const t=i.value.trim(); if(!t||!tkAtual)return; i.value='';
     const {error}=await sb.from('ticket_msgs').insert({ticket_id:tkAtual,user_id:UID,nick:meuNick,texto:t}); if(error){ i.value=t; alert('Erro: '+error.message); } }
   function fecharTicket(){ document.getElementById('tk-modal').classList.add('hidden'); if(tkSub){ sb.removeChannel(tkSub); tkSub=null; } tkAtual=null; carregarMeusTickets(); if(ehAdmin) carregarTicketsAdmin(); }
+  async function excluirTicket(id){ if(!ehAdmin)return; if(!confirm('Excluir este ticket e toda a conversa? Não dá pra desfazer.'))return; const {error}=await sb.from('tickets').delete().eq('id',id); if(error){ alert('Erro: '+error.message); return; } fecharTicket(); }
+  // ---- Sobre (editável pelo admin) ----
+  let sobreTxt='';
+  async function carregarSobre(){ const {data}=await sb.from('site_config').select('sobre').eq('id',1).maybeSingle(); sobreTxt=(data&&data.sobre)||'A TGT — The Golden Team é a maior comunidade de streamers do Brasil. 🦅'; const el=document.getElementById('sobre-texto'); if(el) el.textContent=sobreTxt; }
+  function editarSobre(){ document.getElementById('sobre-input').value=sobreTxt; document.getElementById('sobre-texto').classList.add('hidden'); document.getElementById('sobre-editor').classList.remove('hidden'); }
+  function cancelarSobre(){ document.getElementById('sobre-editor').classList.add('hidden'); document.getElementById('sobre-texto').classList.remove('hidden'); }
+  async function salvarSobre(){ const v=document.getElementById('sobre-input').value; const {error}=await sb.from('site_config').upsert({id:1,sobre:v,updated_at:new Date().toISOString()}); if(error){ alert('Erro: '+error.message); return; } sobreTxt=v; document.getElementById('sobre-texto').textContent=v; cancelarSobre(); }
   async function resolverTicket2(id){ if(!ehAdmin)return; await sb.from('tickets').update({status:'resolvido'}).eq('id',id); await sb.from('ticket_msgs').insert({ticket_id:id,user_id:UID,nick:meuNick,texto:'✅ Ticket marcado como resolvido.'}); abrirTicket(id); }
   async function marcarVendido(id){ if(!ehAdmin||!tkInfo)return; const slot=tkInfo.lista, d=tkInfo.dia, h=tkInfo.hora;
     if(slot==null||d==null||h==null){ alert('Esse ticket não tem horário vinculado.'); return; }
