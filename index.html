@@ -33,6 +33,9 @@
   label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:0 0 6px;font-weight:600}
   input{width:100%;background:#0f0f12;border:1px solid var(--bd);border-radius:10px;color:var(--txt);padding:12px;font-size:14px;outline:none}
   input:focus{border-color:var(--gold)} .msg{font-size:13px;margin-top:10px;min-height:18px}
+  textarea{width:100%;background:#0f0f12;border:1px solid var(--bd);border-radius:10px;color:var(--txt);padding:12px;font-size:14px;outline:none;font-family:'Inter',sans-serif;min-height:90px;resize:vertical}
+  textarea:focus{border-color:var(--gold)}
+  .tk{padding:10px 0;border-bottom:1px solid var(--bd)}
 
   .shell{display:grid;grid-template-columns:212px 1fr 322px;min-height:100vh}
   .side{background:var(--side);border-right:1px solid var(--bd);padding:20px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
@@ -176,7 +179,9 @@
       <a data-v="pontos" onclick="mostrar('pontos')"><svg class="i"><use href="#trophy"/></svg> PONTOS</a>
       <a data-v="agenda" onclick="mostrar('agenda')"><svg class="i"><use href="#cal"/></svg> AGENDA</a>
       <a data-v="disp" onclick="mostrar('disp')"><svg class="i"><use href="#radio"/></svg> DISPONIBILIDADE</a>
+      <a data-v="suporte" onclick="mostrar('suporte')"><svg class="i"><use href="#msg"/></svg> SUPORTE</a>
       <a data-v="sobre" onclick="mostrar('sobre')"><svg class="i"><use href="#info"/></svg> SOBRE</a>
+      <a data-v="admin" id="nav-admin" onclick="mostrar('admin')" style="display:none"><svg class="i"><use href="#shield"/></svg> ADMIN</a>
     </nav>
     <div class="numbers">
       <h5>TGT EM NÚMEROS</h5>
@@ -277,6 +282,40 @@
         </div>
       </div>
     </div>
+
+    <div id="v-suporte" class="hidden">
+      <div class="card" style="padding:22px;max-width:680px">
+        <div class="sec-h" style="padding:0 0 10px"><span class="dot"><svg class="i"><use href="#msg"/></svg></span> CENTRAL DE SUPORTE</div>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 14px">Abra um ticket que a administração responde por aqui.</p>
+        <label>Assunto</label>
+        <input id="tk-assunto" placeholder="ex.: Problema no meu horário">
+        <label style="margin-top:12px">Mensagem</label>
+        <textarea id="tk-msg" placeholder="Descreva o que você precisa..."></textarea>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px"><button class="btn" onclick="enviarTicket()">ENVIAR TICKET</button><span class="msg" id="tk-status"></span></div>
+        <h3 style="margin:22px 0 8px;font-family:Oswald;color:var(--gold);font-size:16px">MEUS TICKETS</h3>
+        <div id="meus-tickets"></div>
+      </div>
+    </div>
+
+    <div id="v-admin" class="hidden">
+      <div class="card" style="padding:20px;margin-bottom:14px">
+        <div class="sec-h" style="padding:0 0 10px"><span class="dot"><svg class="i"><use href="#shield"/></svg></span> PAINEL ADMIN</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="location.href='admin.html'">GERENCIAR USUÁRIOS</button>
+          <button class="btn" onclick="location.href='escala.html'">MONTAR ESCALA</button>
+        </div>
+      </div>
+      <div class="card" style="padding:20px;margin-bottom:14px;max-width:680px">
+        <h3 style="margin:0 0 6px;font-family:Oswald;color:var(--gold);font-size:16px">SUBIR PONTUAÇÃO (Excel)</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 12px">Suba a planilha de pontuação. O ranking usa <b>esses pontos</b> (não as horas da escala).</p>
+        <input type="file" id="pt-file" accept=".xlsx" style="max-width:420px">
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px"><button class="btn" onclick="importarPontosAdmin()">APLICAR PONTUAÇÃO</button><span class="msg" id="pt-status"></span></div>
+      </div>
+      <div class="card" style="padding:20px">
+        <h3 style="margin:0 0 10px;font-family:Oswald;color:var(--gold);font-size:16px">TICKETS <button class="btn outline" style="float:right;padding:5px 11px;font-size:11px" onclick="carregarTicketsAdmin()">↻</button></h3>
+        <div id="admin-tickets">—</div>
+      </div>
+    </div>
   </main>
 
   <aside class="right">
@@ -302,6 +341,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script src="config.js"></script>
 <script>
   const sb=window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
@@ -310,7 +350,7 @@
   const SLOTS=['A','B','C','D','E','F'];
   const VIP_SLOTS=['E','F'];
   const romano=s=>s;
-  let PERFIS=[], PUB={}, SEMANA=null, DEMO=false, meuNick='', ehAdmin=false, chatSub=null;
+  let PERFIS=[], PUB={}, SEMANA=null, DEMO=false, meuNick='', ehAdmin=false, chatSub=null, UID=null, adminToken=null;
 
   const ini=n=>{ const p=String(n||'?').replace(/_/g,' ').split(' ').filter(Boolean); return ((p[0]||'?')[0]+(p[1]?p[1][0]:(p[0]||'  ')[1]||'')).toUpperCase(); };
   const PLAT={kick:'#4fe018',twitch:'#a06bff',youtube:'#ff4d4d',outro:'#ffc83d'};
@@ -332,18 +372,19 @@
 
   async function iniciar(){
     const {data:{user:u}}=await sb.auth.getUser(); if(!u) return;
-    ehAdmin=u.email===ADMIN;
+    UID=u.id; ehAdmin=u.email===ADMIN;
+    const {data:{session}}=await sb.auth.getSession(); adminToken=session&&session.access_token;
     const {data:perf}=await sb.from('profiles').select('nick').eq('user_id',u.id).maybeSingle();
     meuNick=perf?.nick||(ehAdmin?'Administração':u.email.replace('@tgt.com',''));
     document.getElementById('ap-nick').textContent=meuNick;
-    if(ehAdmin) document.getElementById('btn-admin').style.display='inline-block';
+    if(ehAdmin){ document.getElementById('btn-admin').style.display='inline-block'; const na=document.getElementById('nav-admin'); if(na) na.style.display='flex'; }
     document.getElementById('view-login').classList.add('hidden');
     document.getElementById('view-app').classList.remove('hidden');
     await carregar(); await carregarChat();
   }
 
   async function carregar(){
-    const r1=await sb.from('profiles').select('nick,link,folga,ativo,vip'); PERFIS=(r1.data||[]).filter(p=>p.ativo!==false);
+    const r1=await sb.from('profiles').select('nick,link,folga,ativo,vip,pontos'); PERFIS=(r1.data||[]).filter(p=>p.ativo!==false);
     const r2=await sb.from('escala_pub').select('dados,semana_inicio').eq('id',1).maybeSingle();
     PUB=(r2.data&&r2.data.dados)||{}; SEMANA=r2.data&&r2.data.semana_inicio;
     numeros(); streamers(); agenda(); ranking(); aprov();
@@ -371,12 +412,20 @@
       it.forEach(e=>{ const pl=platDe(e.n); h+=`<div class="ev"><div class="t">${String(e.h).padStart(2,'0')}:00</div><div class="n">${isVip(e.n)?'👑 ':''}${e.n}</div><span class="pill ${pl}">${pl.toUpperCase()}</span></div>`; });
       h+='</div>'; }
     return h; }
+  function meusDiasHTML(){ let h='';
+    for(let d=0;d<7;d++){ const it=[]; SLOTS.forEach(s=>{ const o=PUB[s]||{}; for(const k in o){ const [dd,hh]=k.split('-').map(Number); if(dd===d && ehMeu(o[k])) it.push({h:hh,s}); } }); it.sort((a,b)=>a.h-b.h);
+      h+=`<div class="col"><h6>${DIAS[d]}</h6>`;
+      if(!it.length) h+='<div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px 0">—</div>';
+      it.forEach(e=>{ const vip=VIP_SLOTS.includes(e.s); const pl=platDe(meuNick); h+=`<div class="ev"><div class="t">${String(e.h).padStart(2,'0')}:00</div><div class="n">${vip?'⭐ ':''}Lista ${romano(e.s)}</div><span class="pill ${pl}">${pl.toUpperCase()}</span></div>`; });
+      h+='</div>'; }
+    return h; }
   function agendaTabsGrid(cid,soMeu){ const el=document.getElementById(cid); if(!el) return;
     if(!temEscala()){ el.innerHTML=VAZIO; return; }
+    if(soMeu){ el.innerHTML='<div class="agenda" style="padding-top:14px">'+meusDiasHTML()+'</div>'; return; }
     if(!(PUB[agSlot]&&Object.keys(PUB[agSlot]).length)){ const f=SLOTS.find(s=>PUB[s]&&Object.keys(PUB[s]).length); if(f) agSlot=f; }
     const tabs=SLOTS.map(s=>{ const vip=VIP_SLOTS.includes(s); const n=Object.keys(PUB[s]||{}).length;
-      return `<button class="agtab ${s===agSlot?'on':''}" onclick="setAgSlot('${s}','${cid}',${soMeu?1:0})">${vip?'⭐ ':''}Lista ${romano(s)}${n?` (${n})`:''}</button>`; }).join('');
-    el.innerHTML=`<div class="agtabs">${tabs}</div><div class="agenda">${diasHTML(agSlot,soMeu)}</div>`; }
+      return `<button class="agtab ${s===agSlot?'on':''}" onclick="setAgSlot('${s}','${cid}',0)">${vip?'⭐ ':''}Lista ${romano(s)}${n?` (${n})`:''}</button>`; }).join('');
+    el.innerHTML=`<div class="agtabs">${tabs}</div><div class="agenda">${diasHTML(agSlot,false)}</div>`; }
   function setAgSlot(s,cid,soMeu){ agSlot=s; agendaTabsGrid(cid,!!soMeu); }
   function agenda(){ document.getElementById('ag-info').textContent=temEscala()?agendaInfo():''; agendaTabsGrid('agenda',false); }
 
@@ -388,16 +437,18 @@
     <a class="btn outline" style="font-size:11px;padding:6px 12px;display:inline-block" href="${p.link||'#'}" target="_blank" rel="noopener">VER CANAL</a></div>`; }
   function renderStreamersFull(){ const box=document.getElementById('full-streamers'); document.getElementById('s-count2').textContent=PERFIS.length+' streamers';
     box.innerHTML=[...PERFIS].sort((a,b)=>(b.vip===true)-(a.vip===true)).map(cardStreamer).join('')||'<div class="pl">Nenhum streamer.</div>'; }
-  function renderPontosFull(){ const c=contLives(); const arr=Object.entries(c).sort((a,b)=>b[1]-a[1]); const box=document.getElementById('full-ranking');
-    if(!arr.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">Sem dados ainda. Publique uma escala no painel.</div>'; return; }
-    box.innerHTML=arr.map(([n,t],i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(n)]}">${ini(n)}</div><div class="u">${isVip(n)?'👑 ':''}${n}</div><div class="pt">${(t*120).toLocaleString('pt-BR')}</div></div>`).join(''); }
+  function renderPontosFull(){ const arr=PERFIS.filter(p=>(p.pontos||0)>0).sort((a,b)=>(b.pontos||0)-(a.pontos||0)); const box=document.getElementById('full-ranking');
+    if(!arr.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">Sem pontuação ainda. O admin sobe a planilha de pontos na aba ADMIN.</div>'; return; }
+    box.innerHTML=arr.map((p,i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u">${p.vip?'👑 ':''}${p.nick}</div><div class="pt">${Number(p.pontos).toLocaleString('pt-BR')}</div></div>`).join(''); }
   function mostrar(v){
-    ['inicio','comunidade','streamers','pontos','agenda','disp','sobre'].forEach(x=>{ const el=document.getElementById('v-'+x); if(el) el.classList.toggle('hidden',x!==v); });
+    ['inicio','comunidade','streamers','pontos','agenda','disp','suporte','admin','sobre'].forEach(x=>{ const el=document.getElementById('v-'+x); if(el) el.classList.toggle('hidden',x!==v); });
     document.querySelectorAll('[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
     if(v==='streamers') renderStreamersFull();
     if(v==='pontos') renderPontosFull();
     if(v==='agenda') renderAgendaFull();
     if(v==='disp' && !dispLoaded) carregarDisp();
+    if(v==='suporte') carregarMeusTickets();
+    if(v==='admin') carregarTicketsAdmin();
     window.scrollTo(0,0);
   }
 
@@ -441,9 +492,9 @@
     document.getElementById('ag-meus').style.cssText='padding:6px 12px;font-size:11px';
     renderAgendaFull(); }
   function renderAgendaFull(){ document.getElementById('ag-info2').textContent = temEscala()?(focoAg?'só os seus':agendaInfo()):''; agendaTabsGrid('full-agenda',focoAg); }
-  function ranking(){ const c=contLives(); const arr=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10); const box=document.getElementById('ranking');
-    if(!arr.length){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Sem dados ainda.</div>'; return; }
-    box.innerHTML=arr.map(([n,t],i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(n)]}">${ini(n)}</div><div class="u">${isVip(n)?'👑 ':''}${n}</div><div class="pt">${(t*120).toLocaleString('pt-BR')}</div></div>`).join(''); }
+  function ranking(){ const arr=PERFIS.filter(p=>(p.pontos||0)>0).sort((a,b)=>(b.pontos||0)-(a.pontos||0)).slice(0,10); const box=document.getElementById('ranking');
+    if(!arr.length){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Sem pontuação ainda. (Admin sobe o Excel em ADMIN.)</div>'; return; }
+    box.innerHTML=arr.map((p,i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u">${p.vip?'👑 ':''}${p.nick}</div><div class="pt">${Number(p.pontos).toLocaleString('pt-BR')}</div></div>`).join(''); }
   function aprov(){ if(!ehAdmin) return; document.getElementById('card-aprov').style.display='block';
     document.getElementById('ap-count').textContent='0 pendentes';
     document.getElementById('aprov').innerHTML='<div style="font-size:12px;color:var(--muted)">Nenhuma aprovação pendente.</div>'; }
@@ -467,6 +518,52 @@
     const {error}=await sb.from('chat_msgs').delete().neq('id',0); if(error){ alert('Erro: '+error.message); return; } document.getElementById('chat').innerHTML=''; }
   async function enviarMsg(){ const i=document.getElementById('chat-in'); const t=i.value.trim(); if(!t)return; i.value='';
     const {error}=await sb.from('chat_msgs').insert({ nick:meuNick, texto:t }); if(error){ i.value=t; alert('Erro: '+error.message); } }
+
+  // ----- PONTUAÇÃO (admin sobe Excel) -----
+  function lerXlsx(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>{try{res(XLSX.read(e.target.result,{type:'array'}))}catch(x){rej(x)}}; r.onerror=()=>rej(new Error('falha ao ler')); r.readAsArrayBuffer(file); }); }
+  function rowsDe(wb){ const ws=wb.Sheets[wb.SheetNames[0]]; return XLSX.utils.sheet_to_json(ws,{header:1,defval:''}); }
+  function normNick(s){ s=String(s||'').trim().toLowerCase(); if(!s)return''; const m=s.match(/(?:kick\.com|twitch\.tv|youtube\.com|tiktok\.com)\/@?([^\/\s?]+)/); if(m)s=m[1]; return s.replace(/^@/,'').trim().replace(/\/+$/,''); }
+  async function importarPontosAdmin(){
+    const st=document.getElementById('pt-status'); const f=document.getElementById('pt-file').files[0];
+    if(!f){ st.style.color='var(--err)'; st.textContent='Selecione o Excel.'; return; }
+    if(typeof XLSX==='undefined'){ st.style.color='var(--err)'; st.textContent='Leitor de Excel não carregou (sem internet?).'; return; }
+    st.style.color='var(--muted)'; st.textContent='Lendo planilha...';
+    try{
+      const wb=await lerXlsx(f); const pts={};
+      for(const row of rowsDe(wb).slice(1)){ for(const [ni,pi] of [[1,2],[5,6],[9,10]]){ const raw=String(row[ni]||'').trim(); const key=normNick(raw); if(!key||/nick|posi[çc][ãa]o|canal/i.test(raw))continue; const v=parseFloat(String(row[pi]||'').replace('%','').replace(',','.'))||0; pts[key]=v; } }
+      const mapa={}; PERFIS.forEach(p=>{ const k=normNick(p.nick); if(pts[k]!=null) mapa[p.nick]=pts[k]; });
+      const qtd=Object.keys(mapa).length;
+      if(!qtd){ st.style.color='var(--err)'; st.textContent='Nenhum nick da planilha bateu com os streamers cadastrados.'; return; }
+      st.textContent='Salvando '+qtd+' pontuações...';
+      const r=await fetch('/api/set-pontos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:adminToken,pontos:mapa})});
+      const j=await r.json(); if(!r.ok){ st.style.color='var(--err)'; st.textContent='Erro: '+(j.error||r.status); return; }
+      st.style.color='var(--ok)'; st.textContent='✅ Pontuação aplicada a '+j.atualizados+' streamers.';
+      await carregar();
+    }catch(e){ st.style.color='var(--err)'; st.textContent='Erro: '+e.message; }
+  }
+
+  // ----- TICKETS / SUPORTE -----
+  async function enviarTicket(){
+    const a=document.getElementById('tk-assunto').value.trim(); const m=document.getElementById('tk-msg').value.trim(); const st=document.getElementById('tk-status');
+    if(!a||!m){ st.style.color='var(--err)'; st.textContent='Preencha assunto e mensagem.'; return; }
+    const {error}=await sb.from('tickets').insert({ user_id:UID, nick:meuNick, tipo:'suporte', assunto:a, mensagem:m });
+    if(error){ st.style.color='var(--err)'; st.textContent='Erro: '+error.message; return; }
+    st.style.color='var(--ok)'; st.textContent='✅ Ticket enviado!'; document.getElementById('tk-assunto').value=''; document.getElementById('tk-msg').value=''; carregarMeusTickets();
+  }
+  async function carregarMeusTickets(){
+    const box=document.getElementById('meus-tickets'); if(!box) return;
+    const {data,error}=await sb.from('tickets').select('assunto,status,created_at').eq('user_id',UID).order('created_at',{ascending:false}).limit(20);
+    if(error){ box.innerHTML='<div style="color:var(--muted);font-size:12px">—</div>'; return; }
+    box.innerHTML=(data&&data.length)?data.map(t=>`<div class="tk"><b>${t.assunto}</b> <span style="font-size:11px;color:${t.status==='resolvido'?'#4fe018':'#ffc83d'}">• ${t.status}</span></div>`).join(''):'<div style="color:var(--muted);font-size:12px">Nenhum ticket ainda.</div>';
+  }
+  async function carregarTicketsAdmin(){
+    const box=document.getElementById('admin-tickets'); if(!box) return; box.textContent='Carregando...';
+    const {data,error}=await sb.from('tickets').select('id,nick,tipo,assunto,mensagem,status,created_at').order('created_at',{ascending:false}).limit(60);
+    if(error){ box.innerHTML='<div style="color:var(--err);font-size:12px">Erro: '+error.message+'</div>'; return; }
+    if(!data||!data.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">Nenhum ticket.</div>'; return; }
+    box.innerHTML=data.map(t=>`<div class="tk"><div style="font-size:12px"><b>${t.nick||'?'}</b> · ${t.tipo} · <span style="color:${t.status==='resolvido'?'#4fe018':'#ffc83d'}">${t.status}</span></div><div style="font-weight:700;margin:3px 0">${(t.assunto||'').replace(/</g,'&lt;')}</div><div style="font-size:12px;color:var(--muted)">${(t.mensagem||'').replace(/</g,'&lt;')}</div>${t.status!=='resolvido'?`<button class="btn outline" style="font-size:11px;padding:5px 10px;margin-top:6px" onclick="resolverTicket(${t.id})">marcar resolvido</button>`:''}</div>`).join('');
+  }
+  async function resolverTicket(id){ const {error}=await sb.from('tickets').update({status:'resolvido'}).eq('id',id); if(error){ alert('Erro: '+error.message); return; } carregarTicketsAdmin(); }
 
   (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) iniciar(); })();
 </script>
