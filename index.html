@@ -78,6 +78,10 @@
   .stm .nm{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .stm .pl{font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:2px}
 
+  .agtabs{display:flex;gap:7px;flex-wrap:wrap;padding:0 18px 12px}
+  .agtab{padding:7px 13px;border-radius:999px;border:1px solid var(--bd);background:rgba(0,0,0,.25);color:var(--muted);font-family:Oswald;font-weight:600;font-size:12px;cursor:pointer}
+  .agtab:hover{border-color:var(--bd2);color:var(--txt)}
+  .agtab.on{background:linear-gradient(100deg,var(--amber),var(--gold));color:#3a2700;border-color:transparent}
   .agenda{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:4px 18px 18px}
   .col h6{font-family:'Oswald';margin:0 0 8px;text-align:center;font-size:12px;color:#c9bd97;letter-spacing:1px;font-weight:600}
   .ev{background:var(--raise);border:1px solid var(--bd);border-radius:9px;padding:7px 8px;margin-bottom:7px}
@@ -207,7 +211,7 @@
       </div>
       <div class="card">
         <div class="sec-h"><span class="dot"><svg class="i"><use href="#cal"/></svg></span> AGENDA SEMANAL DE LIVES <span class="more" id="ag-info">SEMANA ATUAL</span></div>
-        <div class="agenda" id="agenda"></div>
+        <div id="agenda"></div>
       </div>
     </div>
 
@@ -245,7 +249,7 @@
             <button class="btn outline" id="ag-meus" style="padding:6px 12px;font-size:11px" onclick="setFocoAgenda(true)">MINHA ESCALA</button>
           </span>
         </div>
-        <div class="agenda" id="full-agenda"></div>
+        <div id="full-agenda"></div>
       </div>
     </div>
 
@@ -285,7 +289,7 @@
       <div id="ranking"></div>
     </div>
     <div class="panel chat">
-      <div class="panel-h"><svg class="i"><use href="#msg"/></svg> CHAT DA COMUNIDADE</div>
+      <div class="panel-h"><svg class="i"><use href="#msg"/></svg> CHAT DA COMUNIDADE <span class="more" id="chat-clear" style="display:none;cursor:pointer;color:#f66" onclick="limparChat()">LIMPAR TUDO</span></div>
       <div class="msgs" id="chat"></div>
       <div class="cin"><input id="chat-in" placeholder="Digite sua mensagem..." onkeydown="if(event.key==='Enter')enviarMsg()"><span class="snd" onclick="enviarMsg()"><svg class="i"><use href="#send"/></svg></span></div>
     </div>
@@ -357,16 +361,22 @@
         <div class="pic" style="background:${GRAD[pl]}">${ini(p.nick)}</div>${aoVivo(p.nick)?'<span class="live">LIVE</span>':''}${p.vip?'<span class="crown">👑</span>':''}</div>
         <div class="nm">${p.nick}</div><div class="pl">${pl.toUpperCase()}</div></div>`; }).join('')||'<div class="pl" style="padding:6px">Nenhum streamer ainda.</div>'; }
   function agendaInfo(){ if(SEMANA){ const b=new Date(SEMANA+'T00:00:00'); const p2=n=>String(n).padStart(2,'0'); return 'SEMANA '+p2(b.getDate())+'/'+p2(b.getMonth()+1); } return 'SEMANA ATUAL'; }
-  function agendaHTML(soMeu){ let h='';
-    for(let d=0;d<7;d++){ const it=[],vis=new Set();
-      SLOTS.forEach(s=>{ const o=PUB[s]||{}; for(const k in o){ const [dd,hh]=k.split('-').map(Number); if(dd===d){ const n=o[k]; if(soMeu && !ehMeu(n)) continue; const key=hh+'|'+n; if(!vis.has(key)){ vis.add(key); it.push({h:hh,n}); } } } });
-      it.sort((a,b)=>a.h-b.h);
+  let agSlot='A';
+  function diasHTML(slot,soMeu){ const o=PUB[slot]||{}; let h='';
+    for(let d=0;d<7;d++){ const it=[]; for(const k in o){ const [dd,hh]=k.split('-').map(Number); if(dd===d){ const n=o[k]; if(soMeu && !ehMeu(n)) continue; it.push({h:hh,n}); } } it.sort((a,b)=>a.h-b.h);
       h+=`<div class="col"><h6>${DIAS[d]}</h6>`;
       if(!it.length) h+='<div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px 0">—</div>';
       it.forEach(e=>{ const pl=platDe(e.n); h+=`<div class="ev"><div class="t">${String(e.h).padStart(2,'0')}:00</div><div class="n">${isVip(e.n)?'👑 ':''}${e.n}</div><span class="pill ${pl}">${pl.toUpperCase()}</span></div>`; });
       h+='</div>'; }
     return h; }
-  function agenda(){ const v=temEscala(); document.getElementById('ag-info').textContent=v?agendaInfo():''; document.getElementById('agenda').innerHTML=v?agendaHTML():VAZIO; }
+  function agendaTabsGrid(cid,soMeu){ const el=document.getElementById(cid); if(!el) return;
+    if(!temEscala()){ el.innerHTML=VAZIO; return; }
+    if(!(PUB[agSlot]&&Object.keys(PUB[agSlot]).length)){ const f=SLOTS.find(s=>PUB[s]&&Object.keys(PUB[s]).length); if(f) agSlot=f; }
+    const tabs=SLOTS.map(s=>{ const vip=VIP_SLOTS.includes(s); const n=Object.keys(PUB[s]||{}).length;
+      return `<button class="agtab ${s===agSlot?'on':''}" onclick="setAgSlot('${s}','${cid}',${soMeu?1:0})">${vip?'⭐ ':''}Lista ${romano(s)}${n?` (${n})`:''}</button>`; }).join('');
+    el.innerHTML=`<div class="agtabs">${tabs}</div><div class="agenda">${diasHTML(agSlot,soMeu)}</div>`; }
+  function setAgSlot(s,cid,soMeu){ agSlot=s; agendaTabsGrid(cid,!!soMeu); }
+  function agenda(){ document.getElementById('ag-info').textContent=temEscala()?agendaInfo():''; agendaTabsGrid('agenda',false); }
 
   // ----- páginas completas (navegação do menu) -----
   function cardStreamer(p){ const pl=platDe(p.nick); return `<div style="background:var(--raise);border:1px solid var(--bd);border-radius:12px;padding:14px;text-align:center">
@@ -428,9 +438,7 @@
     document.getElementById('ag-todos').style.cssText='padding:6px 12px;font-size:11px';
     document.getElementById('ag-meus').style.cssText='padding:6px 12px;font-size:11px';
     renderAgendaFull(); }
-  function renderAgendaFull(){ const tv=temEscala();
-    document.getElementById('full-agenda').innerHTML = tv ? agendaHTML(focoAg) : VAZIO;
-    document.getElementById('ag-info2').textContent = tv ? (focoAg?'só os seus':agendaInfo()) : ''; }
+  function renderAgendaFull(){ document.getElementById('ag-info2').textContent = temEscala()?(focoAg?'só os seus':agendaInfo()):''; agendaTabsGrid('full-agenda',focoAg); }
   function ranking(){ const c=contLives(); const arr=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10); const box=document.getElementById('ranking');
     if(!arr.length){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Sem dados ainda.</div>'; return; }
     box.innerHTML=arr.map(([n,t],i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(n)]}">${ini(n)}</div><div class="u">${isVip(n)?'👑 ':''}${n}</div><div class="pt">${(t*120).toLocaleString('pt-BR')}</div></div>`).join(''); }
@@ -438,14 +446,23 @@
     document.getElementById('ap-count').textContent='0 pendentes';
     document.getElementById('aprov').innerHTML='<div style="font-size:12px;color:var(--muted)">Nenhuma aprovação pendente.</div>'; }
 
-  function linha(m){ const d=document.createElement('div'); d.className='m'; d.innerHTML=`<b>${m.nick}:</b> ${String(m.texto).replace(/</g,'&lt;')}`; return d; }
+  function linha(m){ const d=document.createElement('div'); d.className='m'; d.dataset.id=m.id;
+    d.innerHTML=`<b>${m.nick}:</b> ${String(m.texto).replace(/</g,'&lt;')}`+(ehAdmin?` <span onclick="deletarMsg(${m.id})" title="excluir" style="float:right;color:#f66;cursor:pointer;font-weight:800;margin-left:6px">✕</span>`:''); return d; }
   async function carregarChat(){ const box=document.getElementById('chat'); box.innerHTML='';
-    const {data,error}=await sb.from('chat_msgs').select('nick,texto,created_at').order('created_at',{ascending:true}).limit(60);
+    const {data,error}=await sb.from('chat_msgs').select('id,nick,texto,created_at').order('created_at',{ascending:true}).limit(80);
     if(error){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Chat indisponível (rode o sql-comunidade.sql).</div>'; return; }
     (data||[]).forEach(m=>box.appendChild(linha(m))); box.scrollTop=box.scrollHeight;
+    const cc=document.getElementById('chat-clear'); if(cc) cc.style.display = ehAdmin ? 'inline' : 'none';
     if(chatSub) sb.removeChannel(chatSub);
-    chatSub=sb.channel('chat-tgt').on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_msgs'},p=>{ box.appendChild(linha(p.new)); box.scrollTop=box.scrollHeight; }).subscribe();
+    chatSub=sb.channel('chat-tgt')
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_msgs'},p=>{ box.appendChild(linha(p.new)); box.scrollTop=box.scrollHeight; })
+      .on('postgres_changes',{event:'DELETE',schema:'public',table:'chat_msgs'},p=>{ const el=box.querySelector('[data-id="'+(p.old&&p.old.id)+'"]'); if(el) el.remove(); })
+      .subscribe();
   }
+  async function deletarMsg(id){ if(!ehAdmin) return; const {error}=await sb.from('chat_msgs').delete().eq('id',id);
+    if(error){ alert('Erro ao excluir: '+error.message); return; } const el=document.querySelector('#chat [data-id="'+id+'"]'); if(el) el.remove(); }
+  async function limparChat(){ if(!ehAdmin) return; if(!confirm('Apagar TODAS as mensagens do chat?')) return;
+    const {error}=await sb.from('chat_msgs').delete().neq('id',0); if(error){ alert('Erro: '+error.message); return; } document.getElementById('chat').innerHTML=''; }
   async function enviarMsg(){ const i=document.getElementById('chat-in'); const t=i.value.trim(); if(!t)return; i.value='';
     const {error}=await sb.from('chat_msgs').insert({ nick:meuNick, texto:t }); if(error){ i.value=t; alert('Erro: '+error.message); } }
 
