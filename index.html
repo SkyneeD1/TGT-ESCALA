@@ -36,6 +36,16 @@
   textarea{width:100%;background:#0f0f12;border:1px solid var(--bd);border-radius:10px;color:var(--txt);padding:12px;font-size:14px;outline:none;font-family:'Inter',sans-serif;min-height:90px;resize:vertical}
   textarea:focus{border-color:var(--gold)}
   .tk{padding:10px 0;border-bottom:1px solid var(--bd)}
+  .tkmodal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9998;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+  .tkmodal.hidden{display:none}
+  .tkbox{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--bd2);border-radius:16px;width:min(560px,94vw);max-height:82vh;display:flex;flex-direction:column;box-shadow:var(--sh)}
+  .tkhead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bd);font-family:Oswald;font-size:15px;color:var(--gold)}
+  .tkhead .cl{cursor:pointer;color:var(--muted);font-size:18px}
+  .tkthread{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-height:200px}
+  .tkm{font-size:13px;background:rgba(0,0,0,.28);border:1px solid var(--bd);border-radius:11px;padding:8px 11px;max-width:85%}
+  .tkm.meu{align-self:flex-end;background:linear-gradient(100deg,rgba(255,160,0,.16),rgba(255,210,74,.07));border-color:var(--bd2)}
+  .tkm b{color:var(--gold);font-size:11px;display:block;margin-bottom:2px}
+  .tkbox .cin{margin:0 16px 16px}
 
   .shell{display:grid;grid-template-columns:212px 1fr 322px;min-height:100vh}
   .side{background:var(--side);border-right:1px solid var(--bd);padding:20px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
@@ -350,6 +360,15 @@
   </footer>
 </div>
 
+<div id="tk-modal" class="tkmodal hidden">
+  <div class="tkbox">
+    <div class="tkhead"><b id="tk-titulo">Ticket</b><span class="cl" onclick="fecharTicket()">✕</span></div>
+    <div id="tk-thread" class="tkthread"></div>
+    <div id="tk-vendido-wrap"></div>
+    <div class="cin"><input id="tk-reply" placeholder="Escreva uma mensagem..." onkeydown="if(event.key==='Enter')enviarTicketMsg()"><span class="snd" onclick="enviarTicketMsg()"><svg class="i"><use href="#send"/></svg></span></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script src="config.js"></script>
@@ -361,6 +380,7 @@
   const VIP_SLOTS=['E','F'];
   const romano=s=>s;
   let PERFIS=[], PUB={}, SEMANA=null, DEMO=false, meuNick='', ehAdmin=false, chatSub=null, UID=null, adminToken=null;
+  let tkAtual=null, tkSub=null, tkInfo=null;
 
   const ini=n=>{ const p=String(n||'?').replace(/_/g,' ').split(' ').filter(Boolean); return ((p[0]||'?')[0]+(p[1]?p[1][0]:(p[0]||'  ')[1]||'')).toUpperCase(); };
   const PLAT={kick:'#4fe018',twitch:'#a06bff',youtube:'#ff4d4d',outro:'#ffc83d'};
@@ -455,10 +475,10 @@
     const {error}=await sb.from('escala_pub').upsert({id:1,semana_inicio:SEMANA,dados:PUB,updated_at:new Date().toISOString()});
     if(error){ alert('Erro ao salvar: '+error.message); return; } renderAgendaFull(); }
   async function comprar(slot,k,hora){ const d=+k.split('-')[0]; const dia=DIAS[d]; const hh=String(hora).padStart(2,'0')+':00';
-    if(!confirm('Comprar o horário '+hh+' de '+dia+' na Lista '+romano(slot)+'?\nUm pedido será enviado à administração.')) return;
-    const {error}=await sb.from('tickets').insert({user_id:UID,nick:meuNick,tipo:'compra',assunto:'Compra de horário — Lista '+romano(slot)+' · '+dia+' '+hh,mensagem:'Quero comprar este horário vago (Lista '+romano(slot)+', '+dia+' '+hh+').'});
+    if(!confirm('Comprar o horário '+hh+' de '+dia+' na Lista '+romano(slot)+'?\nVocê vai conversar com a administração pra combinar.')) return;
+    const {data,error}=await sb.from('tickets').insert({user_id:UID,nick:meuNick,tipo:'compra',assunto:'Compra — Lista '+romano(slot)+' · '+dia+' '+hh,mensagem:'Olá! Quero comprar este horário (Lista '+romano(slot)+', '+dia+' '+hh+').',lista:slot,dia:d,hora:hora}).select('id').single();
     if(error){ alert('Erro: '+error.message); return; }
-    alert('✅ Pedido de compra enviado! A administração vai te responder pelo Suporte.'); }
+    abrirTicket(data.id); }
   function agenda(){ const el=document.getElementById('agenda'); document.getElementById('ag-info').textContent=temEscala()?agendaInfo():''; el.innerHTML=temEscala()?gradeListaHTML(agSlot,'agenda'):VAZIO; }
 
   // ----- páginas completas (navegação do menu) -----
@@ -588,18 +608,50 @@
   }
   async function carregarMeusTickets(){
     const box=document.getElementById('meus-tickets'); if(!box) return;
-    const {data,error}=await sb.from('tickets').select('assunto,status,created_at').eq('user_id',UID).order('created_at',{ascending:false}).limit(20);
+    const {data,error}=await sb.from('tickets').select('id,assunto,status,tipo').eq('user_id',UID).order('created_at',{ascending:false}).limit(30);
     if(error){ box.innerHTML='<div style="color:var(--muted);font-size:12px">—</div>'; return; }
-    box.innerHTML=(data&&data.length)?data.map(t=>`<div class="tk"><b>${t.assunto}</b> <span style="font-size:11px;color:${t.status==='resolvido'?'#4fe018':'#ffc83d'}">• ${t.status}</span></div>`).join(''):'<div style="color:var(--muted);font-size:12px">Nenhum ticket ainda.</div>';
+    box.innerHTML=(data&&data.length)?data.map(t=>`<div class="tk" style="cursor:pointer" onclick="abrirTicket(${t.id})">${t.tipo==='compra'?'🛒 ':''}<b>${(t.assunto||'').replace(/</g,'&lt;')}</b> <span style="font-size:11px;color:${t.status==='aberto'?'#ffc83d':'#4fe018'}">• ${t.status}</span></div>`).join(''):'<div style="color:var(--muted);font-size:12px">Nenhum ticket ainda.</div>';
   }
   async function carregarTicketsAdmin(){
     const box=document.getElementById('admin-tickets'); if(!box) return; box.textContent='Carregando...';
-    const {data,error}=await sb.from('tickets').select('id,nick,tipo,assunto,mensagem,status,created_at').order('created_at',{ascending:false}).limit(60);
+    const {data,error}=await sb.from('tickets').select('id,nick,tipo,assunto,status').order('created_at',{ascending:false}).limit(80);
     if(error){ box.innerHTML='<div style="color:var(--err);font-size:12px">Erro: '+error.message+'</div>'; return; }
     if(!data||!data.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">Nenhum ticket.</div>'; return; }
-    box.innerHTML=data.map(t=>`<div class="tk"><div style="font-size:12px"><b>${t.nick||'?'}</b> · ${t.tipo} · <span style="color:${t.status==='resolvido'?'#4fe018':'#ffc83d'}">${t.status}</span></div><div style="font-weight:700;margin:3px 0">${(t.assunto||'').replace(/</g,'&lt;')}</div><div style="font-size:12px;color:var(--muted)">${(t.mensagem||'').replace(/</g,'&lt;')}</div>${t.status!=='resolvido'?`<button class="btn outline" style="font-size:11px;padding:5px 10px;margin-top:6px" onclick="resolverTicket(${t.id})">marcar resolvido</button>`:''}</div>`).join('');
+    box.innerHTML=data.map(t=>`<div class="tk" style="cursor:pointer" onclick="abrirTicket(${t.id})"><div style="font-size:12px"><b>${t.nick||'?'}</b> · ${t.tipo==='compra'?'🛒 compra':'suporte'} · <span style="color:${t.status==='aberto'?'#ffc83d':'#4fe018'}">${t.status}</span></div><div style="font-weight:700">${(t.assunto||'').replace(/</g,'&lt;')}</div></div>`).join('');
   }
-  async function resolverTicket(id){ const {error}=await sb.from('tickets').update({status:'resolvido'}).eq('id',id); if(error){ alert('Erro: '+error.message); return; } carregarTicketsAdmin(); }
+  // ---- conversa do ticket (modal, tempo real) ----
+  function threadMsg(m){ const d=document.createElement('div'); d.className='tkm'+(ehMeu(m.nick)?' meu':''); d.innerHTML='<b>'+(m.nick||'?')+'</b>'+String(m.texto||'').replace(/</g,'&lt;'); return d; }
+  function addThreadMsg(m){ const box=document.getElementById('tk-thread'); if(box){ box.appendChild(threadMsg(m)); box.scrollTop=box.scrollHeight; } }
+  async function abrirTicket(id){
+    const {data:t}=await sb.from('tickets').select('*').eq('id',id).maybeSingle(); if(!t) return; tkAtual=id; tkInfo=t;
+    document.getElementById('tk-titulo').textContent=(t.tipo==='compra'?'🛒 ':'🎧 ')+(t.assunto||'Ticket');
+    let vw='';
+    if(ehAdmin && t.status==='aberto'){
+      if(t.tipo==='compra' && t.lista!=null) vw=`<button class="btn" style="width:100%" onclick="marcarVendido(${id})">✅ MARCAR VENDIDO e escalar ${t.nick}</button>`;
+      else vw=`<button class="btn outline" style="width:100%" onclick="resolverTicket2(${id})">marcar resolvido</button>`;
+    } else if(t.status!=='aberto'){ vw=`<div style="text-align:center;color:#4fe018;font-size:12px">• ${t.status}</div>`; }
+    document.getElementById('tk-vendido-wrap').innerHTML = vw?('<div style="padding:0 16px 10px">'+vw+'</div>'):'';
+    document.getElementById('tk-modal').classList.remove('hidden');
+    const box=document.getElementById('tk-thread'); box.innerHTML='';
+    if(t.mensagem) box.appendChild(threadMsg({nick:t.nick,texto:t.mensagem}));
+    const {data:msgs}=await sb.from('ticket_msgs').select('nick,texto,user_id,created_at').eq('ticket_id',id).order('created_at',{ascending:true});
+    (msgs||[]).forEach(m=>box.appendChild(threadMsg(m))); box.scrollTop=box.scrollHeight;
+    if(tkSub) sb.removeChannel(tkSub);
+    tkSub=sb.channel('tkm-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'ticket_msgs',filter:'ticket_id=eq.'+id},p=>addThreadMsg(p.new)).subscribe();
+  }
+  async function enviarTicketMsg(){ const i=document.getElementById('tk-reply'); const t=i.value.trim(); if(!t||!tkAtual)return; i.value='';
+    const {error}=await sb.from('ticket_msgs').insert({ticket_id:tkAtual,user_id:UID,nick:meuNick,texto:t}); if(error){ i.value=t; alert('Erro: '+error.message); } }
+  function fecharTicket(){ document.getElementById('tk-modal').classList.add('hidden'); if(tkSub){ sb.removeChannel(tkSub); tkSub=null; } tkAtual=null; carregarMeusTickets(); if(ehAdmin) carregarTicketsAdmin(); }
+  async function resolverTicket2(id){ if(!ehAdmin)return; await sb.from('tickets').update({status:'resolvido'}).eq('id',id); await sb.from('ticket_msgs').insert({ticket_id:id,user_id:UID,nick:meuNick,texto:'✅ Ticket marcado como resolvido.'}); abrirTicket(id); }
+  async function marcarVendido(id){ if(!ehAdmin||!tkInfo)return; const slot=tkInfo.lista, d=tkInfo.dia, h=tkInfo.hora;
+    if(slot==null||d==null||h==null){ alert('Esse ticket não tem horário vinculado.'); return; }
+    if(!confirm('Marcar VENDIDO e escalar '+tkInfo.nick+' em Lista '+romano(slot)+' · '+DIAS[d]+' '+String(h).padStart(2,'0')+':00?')) return;
+    const k=d+'-'+h; if(!PUB[slot])PUB[slot]={}; PUB[slot][k]=tkInfo.nick; if(PUB.__venda) delete PUB.__venda[slot+'|'+k];
+    const e1=await sb.from('escala_pub').upsert({id:1,semana_inicio:SEMANA,dados:PUB,updated_at:new Date().toISOString()});
+    if(e1.error){ alert('Erro ao escalar: '+e1.error.message); return; }
+    await sb.from('tickets').update({status:'vendido'}).eq('id',id);
+    await sb.from('ticket_msgs').insert({ticket_id:id,user_id:UID,nick:meuNick,texto:'✅ Vendido! Você foi escalado: Lista '+romano(slot)+' · '+DIAS[d]+' '+String(h).padStart(2,'0')+':00'});
+    agenda(); renderAgendaFull(); abrirTicket(id); }
 
   (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) iniciar(); })();
 </script>
