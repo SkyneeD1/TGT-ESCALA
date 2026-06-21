@@ -308,6 +308,8 @@
   const ADMIN=window.ADMIN_EMAIL;
   const DIAS=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
   const SLOTS=['A','B','C','D','E','F'];
+  const VIP_SLOTS=['E','F'];
+  const romano=s=>s;
   let PERFIS=[], PUB={}, SEMANA=null, DEMO=false, meuNick='', ehAdmin=false, chatSub=null;
 
   const ini=n=>{ const p=String(n||'?').replace(/_/g,' ').split(' ').filter(Boolean); return ((p[0]||'?')[0]+(p[1]?p[1][0]:(p[0]||'  ')[1]||'')).toUpperCase(); };
