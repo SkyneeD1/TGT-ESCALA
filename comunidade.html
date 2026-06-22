@@ -503,7 +503,8 @@
     box.innerHTML=[...PERFIS].sort((a,b)=>(b.vip===true)-(a.vip===true)).map(cardStreamer).join('')||'<div class="pl">Nenhum streamer.</div>'; }
   function renderPontosFull(){ const arr=PERFIS.filter(p=>(p.pontos||0)>0).sort((a,b)=>(b.pontos||0)-(a.pontos||0)); const box=document.getElementById('full-ranking');
     if(!arr.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">Sem pontuação ainda. O admin sobe a planilha de pontos na aba ADMIN.</div>'; return; }
-    box.innerHTML=arr.map((p,i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u">${p.vip?'👑 ':''}${p.nick}</div><div class="pt">${Number(p.pontos).toLocaleString('pt-BR')}</div></div>`).join(''); }
+    const max=arr[0].pontos||1;
+    box.innerHTML=arr.map((p,i)=>{ const pct=Math.round((p.pontos/max)*100); return `<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u">${p.vip?'👑 ':''}${p.nick}</div><div class="pt" style="text-align:right">${Number(p.pontos).toLocaleString('pt-BR')}<span style="display:block;font-size:11px;color:var(--muted);font-family:Inter;font-weight:600">${pct}%</span></div></div>`; }).join(''); }
   function mostrar(v){
     ['inicio','comunidade','streamers','pontos','agenda','disp','suporte','admin','sobre'].forEach(x=>{ const el=document.getElementById('v-'+x); if(el) el.classList.toggle('hidden',x!==v); });
     document.querySelectorAll('[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
@@ -563,7 +564,8 @@
     el.innerHTML=gradeListaHTML(agSlot,'full-agenda'); }
   function ranking(){ const arr=PERFIS.filter(p=>(p.pontos||0)>0).sort((a,b)=>(b.pontos||0)-(a.pontos||0)).slice(0,10); const box=document.getElementById('ranking');
     if(!arr.length){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Sem pontuação ainda. (Admin sobe o Excel em ADMIN.)</div>'; return; }
-    box.innerHTML=arr.map((p,i)=>`<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u">${p.vip?'👑 ':''}${p.nick}</div><div class="pt">${Number(p.pontos).toLocaleString('pt-BR')}</div></div>`).join(''); }
+    const max=arr[0].pontos||1;
+    box.innerHTML=arr.map((p,i)=>{ const pct=Math.round((p.pontos/max)*100); return `<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u">${p.vip?'👑 ':''}${p.nick}</div><div class="pt" style="text-align:right">${Number(p.pontos).toLocaleString('pt-BR')}<span style="display:block;font-size:10px;color:var(--muted);font-family:Inter;font-weight:600">${pct}%</span></div></div>`; }).join(''); }
   function aprov(){ if(!ehAdmin) return; document.getElementById('card-aprov').style.display='block';
     document.getElementById('ap-count').textContent='0 pendentes';
     document.getElementById('aprov').innerHTML='<div style="font-size:12px;color:var(--muted)">Nenhuma aprovação pendente.</div>'; }
