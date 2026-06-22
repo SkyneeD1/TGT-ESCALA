@@ -396,7 +396,7 @@
   const ini=n=>{ const p=String(n||'?').replace(/_/g,' ').split(' ').filter(Boolean); return ((p[0]||'?')[0]+(p[1]?p[1][0]:(p[0]||'  ')[1]||'')).toUpperCase(); };
   const PLAT={kick:'#4fe018',twitch:'#a06bff',youtube:'#ff4d4d',outro:'#ffc83d'};
   const GRAD={kick:'linear-gradient(135deg,#4fe018,#0b8a3e)',twitch:'linear-gradient(135deg,#a06bff,#5a2bd6)',youtube:'linear-gradient(135deg,#ff5a5a,#a30000)',outro:'linear-gradient(135deg,#ffd24a,#ff7a00)'};
-  function platDe(nick){ const links=PUB.__links||{}; let l=links[nick]; if(!l){ const p=PERFIS.find(x=>x.nick===nick); l=p&&p.link; } l=String(l||'').toLowerCase();
+  function platDe(nick){ const p=PERFIS.find(x=>x.nick===nick); let l=String((p&&p.link)||'').toLowerCase();
     if(l.includes('twitch.tv'))return'twitch'; if(l.includes('youtube')||l.includes('youtu.be'))return'youtube'; if(l.includes('kick.com'))return'kick'; return'outro'; }
   function isVip(nick){ const p=PERFIS.find(x=>x.nick===nick); return p&&p.vip===true; }
   function ehMeu(n){ return String(n||'').toLowerCase()===String(meuNick||'').toLowerCase(); }
