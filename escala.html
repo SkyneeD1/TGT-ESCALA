@@ -180,6 +180,12 @@
         <p class="hint">Abaixo da menor faixa não entra. Quem pontua mais ganha mais horas.</p>
       </div>
       <div class="card">
+        <h3>🕒 Horários ativos</h3>
+        <p class="hint" style="margin:0 0 10px">Desmarque as horas que NÃO usa. O <b>Gerar automático</b> não preenche elas, e elas somem da grade/agenda.</p>
+        <div id="horas-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px"></div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:10px"><button class="btn sm" onclick="salvarHoras()">Salvar horários</button><span class="hint" id="horas-status" style="margin:0"></span></div>
+      </div>
+      <div class="card">
         <h3>👥 Membros <span style="margin-left:auto;font-size:11px;color:var(--muted2)" id="memb-count"></span></h3>
         <div class="row" style="margin-bottom:10px">
           <div class="fld" style="flex:2"><label>Nome</label><input id="m-nome" placeholder="add manual (ex.: VIP)" onkeydown="if(event.key==='Enter')addMembro()"></div>
@@ -247,6 +253,7 @@
   const SLOTS = ['A','B','C','D','E','F'];
   const AUTO_SLOTS = ['A','B','C','D'];
   const VIP_SLOTS = ['E','F'];
+  let HORAS = Array.from({length:24},(_,i)=>i);
   const romano = s => s;   // mostra a letra (A,B,C...) em vez de I,II,III
   function novaEscala(){ const o={}; SLOTS.forEach(s=>o[s]={}); return o; }
   let membros = [], escala = novaEscala();
@@ -392,7 +399,7 @@
     if(slotSel==='RESUMO'){ renderResumo(nd,nh); return; }
     const m=selIdx>=0?membros[selIdx]:null;
     let h='<table><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th class="${i===nd?'now-col':''}" onclick="selDia(${i})">${d}</th>`).join('')+'</tr></thead><tbody>';
-    for(let hora=0;hora<24;hora++){ const dawn=hora<7;
+    for(const hora of HORAS){ const dawn=hora<7;
       h+=`<tr class="${hora===nh?'now-row':''}"><td class="hcol" onclick="selHora(${hora})">${String(hora).padStart(2,'0')}:00</td>`;
       for(let d=0;d<7;d++){ const k=d+'-'+hora; const dono=escala[slotSel][k]; const cls=['cell']; if(dono){cls.push('has');cls.push(plataformaDe(dono));} if(m&&m.prefs.has(k))cls.push('pref');
         const tdcls=[]; if(dawn)tdcls.push('dawn'); if(d===nd)tdcls.push('now-col-cell'); const txt=dono||'<span class=dim>·</span>';
@@ -403,7 +410,7 @@
   function corHeat(n){ if(n===0)return'rgba(255,80,80,.18)'; const c=['','#7a2a2a','#9c5a1e','#b89020','#8aa01e','#4faa2e','#2ecc71']; return c[n]||'#2ecc71'; }
   function renderResumo(nd,nh){
     let h='<table><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th class="${i===nd?'now-col':''}">${d}</th>`).join('')+'</tr></thead><tbody>';
-    for(let hora=0;hora<24;hora++){ h+=`<tr class="${hora===nh?'now-row':''}"><td class="hcol">${String(hora).padStart(2,'0')}:00</td>`;
+    for(const hora of HORAS){ h+=`<tr class="${hora===nh?'now-row':''}"><td class="hcol">${String(hora).padStart(2,'0')}:00</td>`;
       for(let d=0;d<7;d++){ const k=d+'-'+hora; let n=0; SLOTS.forEach(s=>{ if(escala[s][k])n++; }); const cor=corHeat(n); const tc=n>=4?'#04210f':'#f6ecd0';
         h+=`<td title="${n}/6 listas em ${DIAS[d]} ${String(hora).padStart(2,'0')}:00"><div class="heat" style="background:${cor};color:${tc}">${n}</div></td>`; }
       h+='</tr>'; }
@@ -415,7 +422,7 @@
     pintMode = modo==='pref' ? !m.prefs.has(k) : (escala[slotSel][k]!==m.nome); aplicaCelula(k); renderGrade(); }
   function cellEnter(k){ if(pintando){ aplicaCelula(k); renderGrade(); } }
   document.addEventListener('mouseup',()=>{ if(pintando){ pintando=false; renderTabs(); renderDist(); updateStats(); if(document.getElementById('m-ordem').value==='horas') renderMembros(); salvarRascunho(); } });
-  function selDia(d){ if(slotSel==='RESUMO'||selIdx<0)return; pintMode=true; for(let h=0;h<24;h++)aplicaCelula(d+'-'+h); renderGrade(); renderTabs(); renderDist(); updateStats(); salvarRascunho(); }
+  function selDia(d){ if(slotSel==='RESUMO'||selIdx<0)return; pintMode=true; for(const h of HORAS)aplicaCelula(d+'-'+h); renderGrade(); renderTabs(); renderDist(); updateStats(); salvarRascunho(); }
   function selHora(h){ if(slotSel==='RESUMO'||selIdx<0)return; pintMode=true; for(let d=0;d<7;d++)aplicaCelula(d+'-'+h); renderGrade(); renderTabs(); renderDist(); updateStats(); salvarRascunho(); }
 
   function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -424,7 +431,7 @@
     if(!qual.length){ toast('Ninguém qualificado/disponível (pontuação ≥ '+meta()+'%, sem folga). Importe a pontuação.','warn'); return; }
     const quota={}, horas={}; qual.forEach(m=>{ quota[m.nome]=tierHoras(m.pontos); horas[m.nome]=0; });
     AUTO_SLOTS.forEach(s=>escala[s]={});
-    const cel=[]; for(let d=0;d<7;d++)for(let h=0;h<24;h++)cel.push([d,h]); shuffle(cel);
+    const cel=[]; for(let d=0;d<7;d++)for(const h of HORAS)cel.push([d,h]); shuffle(cel);
     for(const [d,h] of cel){ const k=d+'-'+h; const usados=new Set();
       for(const s of shuffle([...AUTO_SLOTS])){
         const cands=qual.filter(m=>m.prefs.has(k)&&horas[m.nome]<quota[m.nome]&&!usados.has(m.nome));
@@ -441,7 +448,7 @@
     if(selIdx<0){ toast('Selecione um membro primeiro.','warn'); return; }
     const nome=membros[selIdx].nome; const alvos=todas?SLOTS:[slotSel==='RESUMO'?'A':slotSel];
     if(todas && !(await modalConfirm(`Preencher TODAS as casas vazias das 6 listas com "<b>${nome}</b>"?`,'Preencher'))) return;
-    let n=0; for(const s of alvos) for(let d=0;d<7;d++) for(let h=0;h<24;h++){ const k=d+'-'+h; if(!escala[s][k]){ escala[s][k]=nome; n++; } }
+    let n=0; for(const s of alvos) for(let d=0;d<7;d++) for(const h of HORAS){ const k=d+'-'+h; if(!escala[s][k]){ escala[s][k]=nome; n++; } }
     renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats(); salvarRascunho(); toast(`✅ ${n} casas preenchidas com "${nome}".`,'ok');
   }
   function limparEscala(){ escala=novaEscala(); renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats(); salvarRascunho(); toast('Escala limpa.','warn'); }
@@ -515,12 +522,25 @@
     const nome=nomeBase()+' - calendario.xlsx'; XLSX.writeFile(wb,nome); box.innerHTML=`✅ Excel <b>${nome}</b> baixado.`; toast('📅 Excel baixado.','ok');
   }
 
+  // ---------- horários ativos (compartilhado com a agenda via site_config) ----------
+  async function carregarHoras(){ try{ const {data}=await sb.from('site_config').select('horas').eq('id',1).maybeSingle(); if(data&&Array.isArray(data.horas)&&data.horas.length) HORAS=data.horas.slice().sort((a,b)=>a-b); }catch(e){} renderHorasGrid(); }
+  function renderHorasGrid(){ const box=document.getElementById('horas-grid'); if(!box)return; let h='';
+    for(let i=0;i<24;i++){ h+=`<label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;color:var(--muted)"><input type="checkbox" data-h="${i}" ${HORAS.includes(i)?'checked':''} style="width:auto"> ${String(i).padStart(2,'0')}h</label>`; }
+    box.innerHTML=h; }
+  async function salvarHoras(){ const sel=[...document.querySelectorAll('#horas-grid input:checked')].map(c=>+c.dataset.h).sort((a,b)=>a-b);
+    HORAS=sel.length?sel:Array.from({length:24},(_,i)=>i);
+    const st=document.getElementById('horas-status'); st.textContent='Salvando...';
+    const {error}=await sb.from('site_config').upsert({id:1,horas:HORAS,updated_at:new Date().toISOString()});
+    if(error){ st.textContent='Erro: '+error.message; return; }
+    st.textContent='✅ Salvo ('+HORAS.length+'h ativas)'; renderGrade(); renderTabs(); renderDist(); updateStats(); toast('🕒 Horários atualizados.','ok'); }
+
   // ---------- init (com trava de admin) ----------
   (function(){ const d=new Date(); const off=(d.getDay()+6)%7; d.setDate(d.getDate()-off); document.getElementById('p-data').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
   (async()=>{
     const {data:{session}}=await sb.auth.getSession();
     if(!session || session.user.email!==window.ADMIN_EMAIL){ location.href='admin.html'; return; }
     adminToken=session.access_token;
+    await carregarHoras();
     renderMembros(); renderTabs(); renderGrade(); renderDist(); updateStats();
     await carregarDoBanco();
     await carregarRascunho();   // recarrega a escala que o admin já tinha montado
