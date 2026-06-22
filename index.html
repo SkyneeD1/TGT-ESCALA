@@ -339,7 +339,7 @@
         <h3 style="margin:0 0 6px;font-family:Oswald;color:var(--gold);font-size:16px">SUBIR PONTUAÇÃO (Excel)</h3>
         <p style="color:var(--muted);font-size:13px;margin:0 0 12px">Suba a planilha de pontuação. O ranking usa <b>esses pontos</b> (não as horas da escala).</p>
         <input type="file" id="pt-file" accept=".xlsx" style="max-width:420px">
-        <div style="margin-top:12px;display:flex;align-items:center;gap:12px"><button class="btn" onclick="importarPontosAdmin()">APLICAR PONTUAÇÃO</button><span class="msg" id="pt-status"></span></div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><button class="btn" onclick="importarPontosAdmin()">APLICAR PONTUAÇÃO</button><button class="btn outline" onclick="zerarPontos()" style="color:#ff9b9b;border-color:rgba(255,80,80,.4)">🗑️ ZERAR PONTUAÇÃO</button><span class="msg" id="pt-status"></span></div>
       </div>
       <div class="card" style="padding:20px">
         <h3 style="margin:0 0 10px;font-family:Oswald;color:var(--gold);font-size:16px">TICKETS <button class="btn outline" style="float:right;padding:5px 11px;font-size:11px" onclick="carregarTicketsAdmin()">↻</button></h3>
@@ -592,6 +592,16 @@
   function lerXlsx(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>{try{res(XLSX.read(e.target.result,{type:'array'}))}catch(x){rej(x)}}; r.onerror=()=>rej(new Error('falha ao ler')); r.readAsArrayBuffer(file); }); }
   function rowsDe(wb){ const ws=wb.Sheets[wb.SheetNames[0]]; return XLSX.utils.sheet_to_json(ws,{header:1,defval:''}); }
   function normNick(s){ s=String(s||'').trim().toLowerCase(); if(!s)return''; const m=s.match(/(?:kick\.com|twitch\.tv|youtube\.com|tiktok\.com)\/@?([^\/\s?]+)/); if(m)s=m[1]; return s.replace(/^@/,'').trim().replace(/\/+$/,''); }
+  async function zerarPontos(){
+    const st=document.getElementById('pt-status');
+    if(!confirm('Zerar a pontuação de TODOS os streamers? (ex.: pra começar uma nova semana)')) return;
+    st.style.color='var(--muted)'; st.textContent='Zerando...';
+    const mapa={}; PERFIS.forEach(p=>{ mapa[p.nick]=0; });
+    const r=await fetch('/api/set-pontos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:adminToken,pontos:mapa})});
+    const j=await r.json(); if(!r.ok){ st.style.color='var(--err)'; st.textContent='Erro: '+(j.error||r.status); return; }
+    st.style.color='var(--ok)'; st.textContent='✅ Pontuação zerada ('+j.atualizados+' streamers).';
+    await carregar();
+  }
   async function importarPontosAdmin(){
     const st=document.getElementById('pt-status'); const f=document.getElementById('pt-file').files[0];
     if(!f){ st.style.color='var(--err)'; st.textContent='Selecione o Excel.'; return; }
