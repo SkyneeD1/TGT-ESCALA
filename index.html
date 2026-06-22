@@ -330,6 +330,12 @@
         </div>
       </div>
       <div class="card" style="padding:20px;margin-bottom:14px;max-width:680px">
+        <h3 style="margin:0 0 6px;font-family:Oswald;color:var(--gold);font-size:16px">HORÁRIOS ATIVOS DA AGENDA</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 12px">Marque só as horas que a escala usa. As desmarcadas somem da agenda e da disponibilidade.</p>
+        <div id="horas-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px"></div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px"><button class="btn" onclick="salvarHoras()">SALVAR HORÁRIOS</button><span class="msg" id="horas-status"></span></div>
+      </div>
+      <div class="card" style="padding:20px;margin-bottom:14px;max-width:680px">
         <h3 style="margin:0 0 6px;font-family:Oswald;color:var(--gold);font-size:16px">SUBIR PONTUAÇÃO (Excel)</h3>
         <p style="color:var(--muted);font-size:13px;margin:0 0 12px">Suba a planilha de pontuação. O ranking usa <b>esses pontos</b> (não as horas da escala).</p>
         <input type="file" id="pt-file" accept=".xlsx" style="max-width:420px">
@@ -385,6 +391,7 @@
   const romano=s=>s;
   let PERFIS=[], PUB={}, SEMANA=null, DEMO=false, meuNick='', ehAdmin=false, chatSub=null, UID=null, adminToken=null;
   let tkAtual=null, tkSub=null, tkInfo=null;
+  let HORAS=Array.from({length:24},(_,i)=>i);
 
   const ini=n=>{ const p=String(n||'?').replace(/_/g,' ').split(' ').filter(Boolean); return ((p[0]||'?')[0]+(p[1]?p[1][0]:(p[0]||'  ')[1]||'')).toUpperCase(); };
   const PLAT={kick:'#4fe018',twitch:'#a06bff',youtube:'#ff4d4d',outro:'#ffc83d'};
@@ -422,6 +429,7 @@
     const r1=await sb.from('profiles').select('nick,link,folga,ativo,vip,pontos'); PERFIS=(r1.data||[]).filter(p=>p.ativo!==false);
     const r2=await sb.from('escala_pub').select('dados,semana_inicio').eq('id',1).maybeSingle();
     PUB=(r2.data&&r2.data.dados)||{}; SEMANA=r2.data&&r2.data.semana_inicio;
+    await carregarConfig();
     numeros(); streamers(); agenda(); ranking(); aprov();
   }
   function temEscala(){ return SLOTS.some(s=>PUB[s]&&Object.keys(PUB[s]).length); }
@@ -466,7 +474,7 @@
   function gradeListaHTML(slot,cid){ const o=PUB[slot]||{}; const venda=PUB.__venda||{};
     let h='<div class="agtabs">'+SLOTS.map(s=>{const vip=VIP_SLOTS.includes(s);return `<button class="agtab ${s===slot?'on':''}" onclick="setAgSlot('${s}','${cid}',0)">${vip?'⭐ ':''}Lista ${romano(s)}</button>`;}).join('')+'</div>';
     h+='<div class="dgw"><table class="dg"><thead><tr><th>Hora</th>'+DIAS.map(d=>`<th>${d}</th>`).join('')+'</tr></thead><tbody>';
-    for(let hora=0;hora<24;hora++){ h+=`<tr><td class="hc">${String(hora).padStart(2,'0')}:00</td>`;
+    for(const hora of HORAS){ h+=`<tr><td class="hc">${String(hora).padStart(2,'0')}:00</td>`;
       for(let d=0;d<7;d++){ const k=d+'-'+hora; const nick=o[k]; const aVenda=!!venda[slot+'|'+k];
         if(nick){ const pl=platDe(nick); h+=`<td><div class="gc ${pl}${ehMeu(nick)?' meu':''}" title="${nick}">${nick}</div></td>`; }
         else if(aVenda){ h+=`<td><div class="gc venda" onclick="${ehAdmin?`toggleVenda('${slot}','${k}')`:`comprar('${slot}','${k}',${hora})`}" title="${ehAdmin?'clique pra tirar da venda':'clique pra comprar'}">${ehAdmin?'à venda ✕':'COMPRAR'}</div></td>`; }
@@ -504,8 +512,8 @@
     if(v==='agenda') renderAgendaFull();
     if(v==='disp' && !dispLoaded) carregarDisp();
     if(v==='suporte') carregarMeusTickets();
-    if(v==='admin') carregarTicketsAdmin();
-    if(v==='sobre') carregarSobre();
+    if(v==='admin'){ carregarTicketsAdmin(); renderHorasGrid(); }
+    if(v==='sobre') carregarConfig();
     window.scrollTo(0,0);
   }
 
@@ -520,7 +528,7 @@
     renderDispGrade(); dispLoaded=true;
   }
   function renderDispGrade(){ let h='<table class="dg"><thead><tr><th>Hora</th>'+DIAS.map((d,i)=>`<th onclick="dSelDia(${i})">${d}</th>`).join('')+'</tr></thead><tbody>';
-    for(let hora=0;hora<24;hora++){ h+=`<tr><td class="hc" onclick="dSelHora(${hora})">${String(hora).padStart(2,'0')}:00</td>`;
+    for(const hora of HORAS){ h+=`<tr><td class="hc" onclick="dSelHora(${hora})">${String(hora).padStart(2,'0')}:00</td>`;
       for(let d=0;d<7;d++){ const k=d+'-'+hora; const on=dispPrefs.has(k);
         h+=`<td class="${hora<7?'dawn':''}" onmousedown="dCd('${k}',event)" onmouseenter="dCe('${k}')"><div class="cell ${on?'on':''}">${on?'🟡':'<span class=dim>·</span>'}</div></td>`; }
       h+='</tr>'; }
@@ -529,7 +537,7 @@
   function dCd(k,e){ e.preventDefault(); pintD=true; pintModeD=!dispPrefs.has(k); dAplica(k); renderDispGrade(); }
   function dCe(k){ if(pintD){ dAplica(k); renderDispGrade(); } }
   document.addEventListener('mouseup',()=>pintD=false);
-  function dSelDia(d){ pintModeD=true; for(let h=0;h<24;h++) dispPrefs.add(d+'-'+h); renderDispGrade(); }
+  function dSelDia(d){ pintModeD=true; for(const h of HORAS) dispPrefs.add(d+'-'+h); renderDispGrade(); }
   function dSelHora(h){ pintModeD=true; for(let d=0;d<7;d++) dispPrefs.add(d+'-'+h); renderDispGrade(); }
   function btnFolgaD(){ const b=document.getElementById('d-folga'); b.textContent='FOLGA: '+(meuFolgaD?'ON':'OFF'); b.className='btn'+(meuFolgaD?'':' outline'); }
   async function toggleFolgaDisp(){ meuFolgaD=!meuFolgaD; btnFolgaD();
@@ -651,7 +659,20 @@
   async function excluirTicket(id){ if(!ehAdmin)return; if(!confirm('Excluir este ticket e toda a conversa? Não dá pra desfazer.'))return; const {error}=await sb.from('tickets').delete().eq('id',id); if(error){ alert('Erro: '+error.message); return; } fecharTicket(); }
   // ---- Sobre (editável pelo admin) ----
   let sobreTxt='';
-  async function carregarSobre(){ const {data}=await sb.from('site_config').select('sobre').eq('id',1).maybeSingle(); sobreTxt=(data&&data.sobre)||'A TGT — The Golden Team é a maior comunidade de streamers do Brasil. 🦅'; const el=document.getElementById('sobre-texto'); if(el) el.textContent=sobreTxt; }
+  async function carregarConfig(){ const {data}=await sb.from('site_config').select('sobre,horas').eq('id',1).maybeSingle();
+    sobreTxt=(data&&data.sobre)||'A TGT — The Golden Team é a maior comunidade de streamers do Brasil. 🦅';
+    HORAS=(data&&Array.isArray(data.horas)&&data.horas.length)?data.horas.slice().sort((a,b)=>a-b):Array.from({length:24},(_,i)=>i);
+    const el=document.getElementById('sobre-texto'); if(el) el.textContent=sobreTxt; }
+  function renderHorasGrid(){ const box=document.getElementById('horas-grid'); if(!box)return; let h='';
+    for(let i=0;i<24;i++){ h+=`<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;color:var(--muted)"><input type="checkbox" data-h="${i}" ${HORAS.includes(i)?'checked':''} style="width:auto"> ${String(i).padStart(2,'0')}:00</label>`; }
+    box.innerHTML=h; }
+  async function salvarHoras(){ const sel=[...document.querySelectorAll('#horas-grid input:checked')].map(c=>+c.dataset.h).sort((a,b)=>a-b);
+    HORAS=sel.length?sel:Array.from({length:24},(_,i)=>i);
+    const st=document.getElementById('horas-status'); st.style.color='var(--muted)'; st.textContent='Salvando...';
+    const {error}=await sb.from('site_config').upsert({id:1,horas:HORAS,updated_at:new Date().toISOString()});
+    if(error){ st.style.color='var(--err)'; st.textContent='Erro: '+error.message; return; }
+    st.style.color='var(--ok)'; st.textContent='✅ Salvo! ('+HORAS.length+' horas ativas)';
+    agenda(); renderAgendaFull(); if(dispLoaded) renderDispGrade(); }
   function editarSobre(){ document.getElementById('sobre-input').value=sobreTxt; document.getElementById('sobre-texto').classList.add('hidden'); document.getElementById('sobre-editor').classList.remove('hidden'); }
   function cancelarSobre(){ document.getElementById('sobre-editor').classList.add('hidden'); document.getElementById('sobre-texto').classList.remove('hidden'); }
   async function salvarSobre(){ const v=document.getElementById('sobre-input').value; const {error}=await sb.from('site_config').upsert({id:1,sobre:v,updated_at:new Date().toISOString()}); if(error){ alert('Erro: '+error.message); return; } sobreTxt=v; document.getElementById('sobre-texto').textContent=v; cancelarSobre(); }
