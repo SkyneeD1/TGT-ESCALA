@@ -215,6 +215,7 @@
           <button class="btn" onclick="gerarAuto()">⚡ Gerar automático</button>
           <button class="btn" onclick="publicarEscala()" style="background:linear-gradient(100deg,#7a2bd6,#b86bff);color:#fff">📢 Publicar pros streamers</button>
           <button class="btn send" onclick="enviarProSistema()">🚀 Enviar pro sistema</button>
+          <button class="btn outline" onclick="zerarAgenda()" style="border-color:#ff6b6b;color:#ff6b6b">🧹 Zerar agenda</button>
         </div>
         <div class="row" style="margin-bottom:12px;align-items:center">
           <span class="toolbar-info">🧩 Preencher <b>casas vazias</b> com o membro selecionado:</span>
@@ -335,6 +336,14 @@
     const {error}=await sb.from('escala_pub').upsert({ id:1, semana_inicio:dataIni, dados:dadosComLinks(), updated_at:new Date().toISOString() });
     if(error){ toast('Erro ao publicar: '+error.message,'err'); return; }
     toast('📢 Escala publicada! Os streamers já podem ver.','ok');
+  }
+  async function zerarAgenda(){
+    if(!(await modalConfirm('Isso vai <b>apagar a agenda publicada</b> — todos os streamers verão a agenda vazia. Continuar?','Zerar agenda'))) return;
+    escala=novaEscala(); renderGrade(); renderTabs(); renderDist(); renderMembros(); updateStats(); salvarRascunho();
+    const dataIni=document.getElementById('p-data').value;
+    const {error}=await sb.from('escala_pub').upsert({ id:1, semana_inicio:dataIni, dados:dadosComLinks(), updated_at:new Date().toISOString() });
+    if(error){ toast('Erro ao zerar: '+error.message,'err'); return; }
+    toast('🧹 Agenda zerada e publicada vazia.','ok');
   }
 
   // ---------- faixas ----------

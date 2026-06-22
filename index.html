@@ -336,6 +336,16 @@
         <div style="margin-top:12px;display:flex;align-items:center;gap:12px"><button class="btn" onclick="salvarHoras()">SALVAR HORÁRIOS</button><span class="msg" id="horas-status"></span></div>
       </div>
       <div class="card" style="padding:20px;margin-bottom:14px;max-width:680px">
+        <h3 style="margin:0 0 6px;font-family:Oswald;color:var(--gold);font-size:16px">TAXA DE QUALIFICAÇÃO</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 12px">Porcentagem mínima pra ser <b>qualificado</b>. No ranking, quem ficar <b>abaixo</b> dessa taxa aparece em <span style="color:#ff6b6b;font-weight:700">vermelho</span>.</p>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="number" id="taxa-input" min="0" max="100" step="0.1" style="width:110px;padding:8px;border-radius:8px;border:1px solid #333;background:#0d0d0d;color:#fff;font-size:15px">
+          <span style="color:var(--muted);font-size:14px;font-weight:700">%</span>
+          <button class="btn" onclick="salvarTaxa()">SALVAR TAXA</button>
+          <span class="msg" id="taxa-status"></span>
+        </div>
+      </div>
+      <div class="card" style="padding:20px;margin-bottom:14px;max-width:680px">
         <h3 style="margin:0 0 6px;font-family:Oswald;color:var(--gold);font-size:16px">SUBIR PONTUAÇÃO (Excel)</h3>
         <p style="color:var(--muted);font-size:13px;margin:0 0 12px">Suba a planilha de pontuação. O ranking usa <b>esses pontos</b> (não as horas da escala).</p>
         <input type="file" id="pt-file" accept=".xlsx" style="max-width:420px">
@@ -392,6 +402,7 @@
   let PERFIS=[], PUB={}, SEMANA=null, DEMO=false, meuNick='', ehAdmin=false, chatSub=null, UID=null, adminToken=null;
   let tkAtual=null, tkSub=null, tkInfo=null;
   let HORAS=Array.from({length:24},(_,i)=>i);
+  let TAXA=60;
 
   const ini=n=>{ const p=String(n||'?').replace(/_/g,' ').split(' ').filter(Boolean); return ((p[0]||'?')[0]+(p[1]?p[1][0]:(p[0]||'  ')[1]||'')).toUpperCase(); };
   const PLAT={kick:'#4fe018',twitch:'#a06bff',youtube:'#ff4d4d',outro:'#ffc83d'};
@@ -503,7 +514,7 @@
     box.innerHTML=[...PERFIS].sort((a,b)=>(b.vip===true)-(a.vip===true)).map(cardStreamer).join('')||'<div class="pl">Nenhum streamer.</div>'; }
   function renderPontosFull(){ const arr=PERFIS.filter(p=>(p.pontos||0)>0).sort((a,b)=>(b.pontos||0)-(a.pontos||0)); const box=document.getElementById('full-ranking');
     if(!arr.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">Sem pontuação ainda. O admin sobe a planilha de pontos na aba ADMIN.</div>'; return; }
-    box.innerHTML=arr.map((p,i)=>{ const pct=(p.pontos/10).toFixed(1).replace('.',','); return `<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u">${p.vip?'👑 ':''}${p.nick}</div><div class="pt" style="text-align:right">${Number(p.pontos).toLocaleString('pt-BR')}<span style="display:block;font-size:11px;color:var(--muted);font-family:Inter;font-weight:600">${pct}%</span></div></div>`; }).join(''); }
+    box.innerHTML=arr.map((p,i)=>{ const real=p.pontos/10; const pct=real.toFixed(1).replace('.',','); const ok=real>=TAXA; const cor=ok?'var(--muted)':'#ff6b6b'; return `<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u" style="${ok?'':'color:#ff6b6b'}">${p.vip?'👑 ':''}${p.nick}${ok?'':' <span style="font-size:10px;font-weight:700">⚠ abaixo da taxa</span>'}</div><div class="pt" style="text-align:right;${ok?'':'color:#ff6b6b'}">${Number(p.pontos).toLocaleString('pt-BR')}<span style="display:block;font-size:11px;color:${cor};font-family:Inter;font-weight:600">${pct}%</span></div></div>`; }).join(''); }
   function mostrar(v){
     ['inicio','comunidade','streamers','pontos','agenda','disp','suporte','admin','sobre'].forEach(x=>{ const el=document.getElementById('v-'+x); if(el) el.classList.toggle('hidden',x!==v); });
     document.querySelectorAll('[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
@@ -563,7 +574,7 @@
     el.innerHTML=gradeListaHTML(agSlot,'full-agenda'); }
   function ranking(){ const arr=PERFIS.filter(p=>(p.pontos||0)>0).sort((a,b)=>(b.pontos||0)-(a.pontos||0)).slice(0,10); const box=document.getElementById('ranking');
     if(!arr.length){ box.innerHTML='<div style="font-size:12px;color:var(--muted)">Sem pontuação ainda. (Admin sobe o Excel em ADMIN.)</div>'; return; }
-    box.innerHTML=arr.map((p,i)=>{ const pct=(p.pontos/10).toFixed(1).replace('.',','); return `<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u">${p.vip?'👑 ':''}${p.nick}</div><div class="pt" style="text-align:right">${Number(p.pontos).toLocaleString('pt-BR')}<span style="display:block;font-size:10px;color:var(--muted);font-family:Inter;font-weight:600">${pct}%</span></div></div>`; }).join(''); }
+    box.innerHTML=arr.map((p,i)=>{ const real=p.pontos/10; const pct=real.toFixed(1).replace('.',','); const ok=real>=TAXA; const cor=ok?'var(--muted)':'#ff6b6b'; return `<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u" style="${ok?'':'color:#ff6b6b'}">${p.vip?'👑 ':''}${p.nick}</div><div class="pt" style="text-align:right;${ok?'':'color:#ff6b6b'}">${Number(p.pontos).toLocaleString('pt-BR')}<span style="display:block;font-size:10px;color:${cor};font-family:Inter;font-weight:600">${pct}%</span></div></div>`; }).join(''); }
   function aprov(){ if(!ehAdmin) return; document.getElementById('card-aprov').style.display='block';
     document.getElementById('ap-count').textContent='0 pendentes';
     document.getElementById('aprov').innerHTML='<div style="font-size:12px;color:var(--muted)">Nenhuma aprovação pendente.</div>'; }
@@ -669,10 +680,18 @@
   async function excluirTicket(id){ if(!ehAdmin)return; if(!confirm('Excluir este ticket e toda a conversa? Não dá pra desfazer.'))return; const {error}=await sb.from('tickets').delete().eq('id',id); if(error){ alert('Erro: '+error.message); return; } fecharTicket(); }
   // ---- Sobre (editável pelo admin) ----
   let sobreTxt='';
-  async function carregarConfig(){ const {data}=await sb.from('site_config').select('sobre,horas').eq('id',1).maybeSingle();
+  async function carregarConfig(){ const {data}=await sb.from('site_config').select('sobre,horas,taxa').eq('id',1).maybeSingle();
     sobreTxt=(data&&data.sobre)||'A TGT — The Golden Team é a maior comunidade de streamers do Brasil. 🦅';
     HORAS=(data&&Array.isArray(data.horas)&&data.horas.length)?data.horas.slice().sort((a,b)=>a-b):Array.from({length:24},(_,i)=>i);
+    TAXA=(data&&data.taxa!=null)?Number(data.taxa):60;
+    const ti=document.getElementById('taxa-input'); if(ti) ti.value=TAXA;
     const el=document.getElementById('sobre-texto'); if(el) el.textContent=sobreTxt; }
+  async function salvarTaxa(){ const v=parseFloat(document.getElementById('taxa-input').value); const st=document.getElementById('taxa-status');
+    if(isNaN(v)||v<0||v>100){ st.style.color='var(--err)'; st.textContent='Taxa inválida (0 a 100)'; return; }
+    st.style.color='var(--muted)'; st.textContent='Salvando...';
+    const {error}=await sb.from('site_config').upsert({id:1,taxa:v,updated_at:new Date().toISOString()});
+    if(error){ st.style.color='var(--err)'; st.textContent='Erro: '+error.message; return; }
+    TAXA=v; st.style.color='var(--ok)'; st.textContent='✅ Taxa salva ('+v+'%)'; ranking(); renderPontosFull(); }
   function renderHorasGrid(){ const box=document.getElementById('horas-grid'); if(!box)return; let h='';
     for(let i=0;i<24;i++){ h+=`<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;color:var(--muted)"><input type="checkbox" data-h="${i}" ${HORAS.includes(i)?'checked':''} style="width:auto"> ${String(i).padStart(2,'0')}:00</label>`; }
     box.innerHTML=h; }
