@@ -47,6 +47,8 @@
   .tkm b{color:var(--gold);font-size:11px;display:block;margin-bottom:2px}
   .tkbox .cin{margin:0 16px 16px}
 
+  .burger{display:none;width:40px;height:40px;border-radius:10px;border:1px solid var(--bd2);background:transparent;color:var(--gold);font-size:20px;cursor:pointer;align-items:center;justify-content:center;flex:0 0 auto}
+  .navscrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9985;backdrop-filter:blur(2px)}
   .shell{display:grid;grid-template-columns:212px 1fr 322px;min-height:100vh}
   .side{background:var(--side);border-right:1px solid var(--bd);padding:20px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
   .logo{display:flex;justify-content:center;margin:0 0 22px}
@@ -148,12 +150,27 @@
   table.dg .gc.venda:hover{filter:brightness(1.15)}
 
   @media(max-width:1100px){
-    .shell{grid-template-columns:1fr} .side{display:none}
+    .shell{grid-template-columns:1fr}
+    .side{position:fixed;left:0;top:0;z-index:9990;width:262px;max-width:84vw;height:100vh;transform:translateX(-105%);transition:transform .25s ease;box-shadow:0 0 50px rgba(0,0,0,.7)}
+    body.nav-open .side{transform:none}
+    body.nav-open .navscrim{display:block}
+    .burger{display:inline-flex}
     .right{position:static;height:auto;border-left:none;border-top:1px solid var(--bd)}
     .top .menu{display:none} .agenda{grid-template-columns:repeat(2,1fr)}
     .hero{padding:30px 22px;min-height:auto} .hero h1{font-size:32px} .hero .sword{opacity:.12}
   }
-  @media(max-width:560px){.main{padding:14px}.agenda{grid-template-columns:1fr}.hero h1{font-size:26px}.top{flex-wrap:wrap;height:auto;gap:10px}}
+  @media(max-width:560px){
+    .main{padding:12px}.agenda{grid-template-columns:1fr}.hero h1{font-size:24px}.hero{padding:24px 18px}
+    .top{flex-wrap:wrap;height:auto;gap:8px;margin-bottom:12px}
+    .top .who{order:3}
+    .top .btn{padding:8px 12px;font-size:12px;flex:1 1 auto}
+    .sec-h{padding:12px 13px;font-size:14px}
+    .streamers{padding:4px 12px 14px;gap:12px}
+    .card .sec-h .more{font-size:9px}
+    table.dg{font-size:11px} table.dg .gc{font-size:9px}
+    #full-streamers{grid-template-columns:repeat(2,1fr)!important}
+    .tkbox{width:96vw;max-height:88vh}
+  }
 </style>
 </head>
 <body>
@@ -190,6 +207,7 @@
 </div>
 
 <div id="view-app" class="shell hidden">
+  <div class="navscrim" onclick="document.body.classList.remove('nav-open')"></div>
   <aside class="side">
     <div class="logo" onclick="mostrar('inicio')" style="cursor:pointer" title="Início"><img src="logo.png" alt="TGT"></div>
     <nav class="nav">
@@ -214,6 +232,7 @@
 
   <main class="main">
     <div class="top">
+      <button class="burger" onclick="document.body.classList.toggle('nav-open')" aria-label="Menu">☰</button>
       <nav class="menu"><a data-v="inicio" class="on" onclick="mostrar('inicio')">INÍCIO</a><a data-v="comunidade" onclick="mostrar('comunidade')">COMUNIDADE</a><a data-v="streamers" onclick="mostrar('streamers')">STREAMERS</a><a data-v="pontos" onclick="mostrar('pontos')">PONTOS</a><a data-v="agenda" onclick="mostrar('agenda')">AGENDA</a><a data-v="sobre" onclick="mostrar('sobre')">SOBRE</a></nav>
       <span class="who">Olá, <b id="ap-nick">—</b></span>
       <button class="btn" onclick="mostrar('disp')">MINHA DISPONIBILIDADE</button>
@@ -501,7 +520,9 @@
     if(!confirm('Comprar o horário '+hh+' de '+dia+' na Lista '+romano(slot)+'?\nVocê vai conversar com a administração pra combinar.')) return;
     const {data,error}=await sb.from('tickets').insert({user_id:UID,nick:meuNick,tipo:'compra',assunto:'Compra — Lista '+romano(slot)+' · '+dia+' '+hh,mensagem:'Olá! Quero comprar este horário (Lista '+romano(slot)+', '+dia+' '+hh+').',lista:slot,dia:d,hora:hora}).select('id').single();
     if(error){ alert('Erro: '+error.message); return; }
+    notificarDiscord({tipo:'compra',nick:meuNick,assunto:'Compra — Lista '+romano(slot)+' · '+dia+' '+hh,mensagem:'Quer comprar este horário.',lista:slot,dia:d,hora});
     abrirTicket(data.id); }
+  async function notificarDiscord(info){ try{ const {data:{session}}=await sb.auth.getSession(); const token=session&&session.access_token; if(!token)return; await fetch('/api/notify-discord',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({token},info))}); }catch(e){} }
   function agenda(){ const el=document.getElementById('agenda'); document.getElementById('ag-info').textContent=temEscala()?agendaInfo():''; el.innerHTML=temEscala()?gradeListaHTML(agSlot,'agenda'):VAZIO; }
 
   // ----- páginas completas (navegação do menu) -----
@@ -516,6 +537,7 @@
     if(!arr.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">Sem pontuação ainda. O admin sobe a planilha de pontos na aba ADMIN.</div>'; return; }
     box.innerHTML=arr.map((p,i)=>{ const real=p.pontos/10; const pct=real.toFixed(1).replace('.',','); const ok=real>=TAXA; const cor=ok?'var(--muted)':'#ff6b6b'; return `<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u" style="${ok?'':'color:#ff6b6b'}">${p.vip?'👑 ':''}${p.nick}${ok?'':' <span style="font-size:10px;font-weight:700">⚠ abaixo da taxa</span>'}</div><div class="pt" style="text-align:right;${ok?'':'color:#ff6b6b'}">${Number(p.pontos).toLocaleString('pt-BR')}<span style="display:block;font-size:11px;color:${cor};font-family:Inter;font-weight:600">${pct}%</span></div></div>`; }).join(''); }
   function mostrar(v){
+    document.body.classList.remove('nav-open');
     ['inicio','comunidade','streamers','pontos','agenda','disp','suporte','admin','sobre'].forEach(x=>{ const el=document.getElementById('v-'+x); if(el) el.classList.toggle('hidden',x!==v); });
     document.querySelectorAll('[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
     if(v==='streamers') renderStreamersFull();
@@ -638,6 +660,7 @@
     if(!a||!m){ st.style.color='var(--err)'; st.textContent='Preencha assunto e mensagem.'; return; }
     const {error}=await sb.from('tickets').insert({ user_id:UID, nick:meuNick, tipo:'suporte', assunto:a, mensagem:m });
     if(error){ st.style.color='var(--err)'; st.textContent='Erro: '+error.message; return; }
+    notificarDiscord({tipo:'suporte',nick:meuNick,assunto:a,mensagem:m});
     st.style.color='var(--ok)'; st.textContent='✅ Ticket enviado!'; document.getElementById('tk-assunto').value=''; document.getElementById('tk-msg').value=''; carregarMeusTickets();
   }
   async function carregarMeusTickets(){
