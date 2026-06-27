@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   // sem webhook configurado → não faz nada (não é erro)
   if (!HOOK) return res.status(200).json({ ok: false, skipped: 'sem DISCORD_WEBHOOK' });
 
-  const { token, tipo, nick, assunto, mensagem, lista, dia, hora } = req.body || {};
+  const { token, tipo, nick, assunto, mensagem, lista, dia, hora, acao } = req.body || {};
 
   // exige usuário logado (evita spam anônimo no canal)
   if (!token) return res.status(400).json({ error: 'Sem token.' });
@@ -29,8 +29,15 @@ export default async function handler(req, res) {
 
   const DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
   const eCompra = tipo === 'compra';
-  const cor = eCompra ? 0x4fe018 : 0xffc83d; // verde compra / dourado suporte
-  const titulo = eCompra ? '🛒 Novo pedido de COMPRA de horário' : '🎫 Novo ticket de SUPORTE';
+  const eFechado = acao === 'fechado';
+  let cor, titulo;
+  if (eFechado) {
+    cor = 0x988a64; // cinza/dourado apagado
+    titulo = eCompra ? '✅ Compra de horário ENCERRADA' : '✅ Ticket de suporte ENCERRADO';
+  } else {
+    cor = eCompra ? 0x4fe018 : 0xffc83d; // verde compra / dourado suporte
+    titulo = eCompra ? '🛒 Novo pedido de COMPRA de horário' : '🎫 Novo ticket de SUPORTE';
+  }
 
   const campos = [{ name: 'Streamer', value: String(nick || '—'), inline: true }];
   if (eCompra && lista != null) {

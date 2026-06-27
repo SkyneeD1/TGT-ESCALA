@@ -728,7 +728,9 @@
   function editarSobre(){ document.getElementById('sobre-input').value=sobreTxt; document.getElementById('sobre-texto').classList.add('hidden'); document.getElementById('sobre-editor').classList.remove('hidden'); }
   function cancelarSobre(){ document.getElementById('sobre-editor').classList.add('hidden'); document.getElementById('sobre-texto').classList.remove('hidden'); }
   async function salvarSobre(){ const v=document.getElementById('sobre-input').value; const {error}=await sb.from('site_config').upsert({id:1,sobre:v,updated_at:new Date().toISOString()}); if(error){ alert('Erro: '+error.message); return; } sobreTxt=v; document.getElementById('sobre-texto').textContent=v; cancelarSobre(); }
-  async function resolverTicket2(id){ if(!ehAdmin)return; await sb.from('tickets').update({status:'resolvido'}).eq('id',id); await sb.from('ticket_msgs').insert({ticket_id:id,user_id:UID,nick:meuNick,texto:'✅ Ticket marcado como resolvido.'}); abrirTicket(id); }
+  async function resolverTicket2(id){ if(!ehAdmin)return; await sb.from('tickets').update({status:'resolvido'}).eq('id',id); await sb.from('ticket_msgs').insert({ticket_id:id,user_id:UID,nick:meuNick,texto:'✅ Ticket marcado como resolvido.'});
+    if(tkInfo) notificarDiscord({acao:'fechado',tipo:tkInfo.tipo,nick:tkInfo.nick,assunto:tkInfo.assunto,mensagem:'Encerrado pela administração.'});
+    abrirTicket(id); }
   async function marcarVendido(id){ if(!ehAdmin||!tkInfo)return; const slot=tkInfo.lista, d=tkInfo.dia, h=tkInfo.hora;
     if(slot==null||d==null||h==null){ alert('Esse ticket não tem horário vinculado.'); return; }
     if(!confirm('Marcar VENDIDO e escalar '+tkInfo.nick+' em Lista '+romano(slot)+' · '+DIAS[d]+' '+String(h).padStart(2,'0')+':00?')) return;
@@ -737,6 +739,7 @@
     if(e1.error){ alert('Erro ao escalar: '+e1.error.message); return; }
     await sb.from('tickets').update({status:'vendido'}).eq('id',id);
     await sb.from('ticket_msgs').insert({ticket_id:id,user_id:UID,nick:meuNick,texto:'✅ Vendido! Você foi escalado: Lista '+romano(slot)+' · '+DIAS[d]+' '+String(h).padStart(2,'0')+':00'});
+    notificarDiscord({acao:'fechado',tipo:'compra',nick:tkInfo.nick,assunto:tkInfo.assunto,mensagem:'Vendido e escalado: Lista '+romano(slot)+' · '+DIAS[d]+' '+String(h).padStart(2,'0')+':00',lista:slot,dia:d,hora:h});
     agenda(); renderAgendaFull(); abrirTicket(id); }
 
   (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) iniciar(); })();
