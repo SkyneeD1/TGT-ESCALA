@@ -50,6 +50,8 @@
   .burger{display:none;width:40px;height:40px;border-radius:10px;border:1px solid var(--bd2);background:transparent;color:var(--gold);font-size:20px;cursor:pointer;align-items:center;justify-content:center;flex:0 0 auto}
   .navscrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9985;backdrop-filter:blur(2px)}
   .shell{display:grid;grid-template-columns:212px 1fr 322px;min-height:100vh}
+  body.fullpage .shell{grid-template-columns:212px 1fr}
+  body.fullpage .right{display:none}
   .side{background:var(--side);border-right:1px solid var(--bd);padding:20px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
   .logo{display:flex;justify-content:center;margin:0 0 22px}
   .logo img{height:118px;filter:drop-shadow(0 6px 22px rgba(255,170,0,.55))}
@@ -335,11 +337,13 @@
       <div class="card" style="padding:22px;max-width:680px">
         <div class="sec-h" style="padding:0 0 10px"><span class="dot"><svg class="i"><use href="#msg"/></svg></span> CENTRAL DE SUPORTE</div>
         <p style="color:var(--muted);font-size:13px;margin:0 0 14px">Abra um ticket que a administração responde por aqui.</p>
-        <label>Assunto</label>
-        <input id="tk-assunto" placeholder="ex.: Problema no meu horário">
-        <label style="margin-top:12px">Mensagem</label>
-        <textarea id="tk-msg" placeholder="Descreva o que você precisa..."></textarea>
-        <div style="margin-top:12px;display:flex;align-items:center;gap:12px"><button class="btn" onclick="enviarTicket()">ENVIAR TICKET</button><span class="msg" id="tk-status"></span></div>
+        <div id="sup-form">
+          <label>Assunto</label>
+          <input id="tk-assunto" placeholder="ex.: Problema no meu horário">
+          <label style="margin-top:12px">Mensagem</label>
+          <textarea id="tk-msg" placeholder="Descreva o que você precisa..."></textarea>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:12px"><button class="btn" onclick="enviarTicket()">ENVIAR TICKET</button><span class="msg" id="tk-status"></span></div>
+        </div>
         <h3 style="margin:22px 0 8px;font-family:Oswald;color:var(--gold);font-size:16px">MEUS TICKETS</h3>
         <div id="meus-tickets"></div>
       </div>
@@ -368,7 +372,7 @@
           <div style="margin:22px 0;background:linear-gradient(100deg,rgba(255,160,0,.16),transparent);border:1px solid var(--bd2);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
             <div>
               <div style="font-family:Oswald;color:var(--muted);font-size:12px;letter-spacing:1px">💰 INVESTIMENTO MENSAL</div>
-              <div style="font-family:Oswald;color:var(--gold);font-size:34px;font-weight:700;line-height:1.1">R$ 79,90</div>
+              <div style="display:flex;align-items:center;gap:10px"><div id="vip-valor" style="font-family:Oswald;color:var(--gold);font-size:34px;font-weight:700;line-height:1.1">R$ 79,90</div><button class="btn outline" id="btn-edit-vip" style="display:none;padding:5px 10px;font-size:11px" onclick="editarVipValor()">✏️ EDITAR</button></div>
             </div>
             <button class="btn" style="margin-left:auto;font-size:15px;padding:14px 26px" onclick="adquirirVip()">👑 QUERO ADQUIRIR VIP</button>
           </div>
@@ -378,6 +382,21 @@
             <li>O membro VIP terá um horário fixo reservado dentro da grade oficial entre <b>06:00 e 23:59</b> (ou mais).</li>
             <li>O horário será definido junto à administração, conforme a disponibilidade da grade.</li>
           </ul>
+
+          <h3 style="font-family:Oswald;color:var(--gold);font-size:17px;margin:22px 0 8px">📊 REQUISITOS PARA SE TORNAR VIP</h3>
+          <p style="color:var(--muted);font-size:13px;margin:0 0 8px">Para participar do VIP Premium TGT, o streamer deverá:</p>
+          <ul style="color:var(--txt);font-size:13.5px;margin:0;padding-left:18px;line-height:1.8">
+            <li>Estar <b>ativo</b> na comunidade.</li>
+            <li>Seguir todas as <b>regras e diretrizes</b> da rede.</li>
+            <li>Possuir média semanal mínima no ranking oficial de <b>60% ou mais</b> <i>(abaixo disso o VIP perde seus benefícios)</i>.</li>
+            <li>Manter boa participação nas atividades da comunidade.</li>
+            <li>Estar em <b>situação regular</b> com a administração.</li>
+            <li>Efetuar o <b>pagamento da mensalidade</b> VIP.</li>
+          </ul>
+          <div style="margin-top:12px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:10px;padding:12px 14px">
+            <div style="font-family:Oswald;color:#ff9b6b;font-size:13px;letter-spacing:.5px;margin-bottom:6px">⚠️ OBSERVAÇÃO</div>
+            <p style="color:var(--muted);font-size:12.5px;margin:0;line-height:1.6">A contratação do VIP <b>não dispensa</b> o streamer de cumprir as regras da comunidade. O descumprimento das diretrizes poderá resultar imediatamente na <b>perda do benefício</b>.</p>
+          </div>
 
           <h3 style="font-family:Oswald;color:#ff9b6b;font-size:17px;margin:22px 0 8px">⚠️ IMPORTANTE</h3>
           <ul style="color:var(--muted);font-size:13px;margin:0;padding-left:18px;line-height:1.7">
@@ -514,7 +533,7 @@
     const {data:perf}=await sb.from('profiles').select('nick').eq('user_id',u.id).maybeSingle();
     meuNick=perf?.nick||(ehAdmin?'Administração':u.email.replace('@tgt.com',''));
     document.getElementById('ap-nick').textContent=meuNick;
-    if(ehAdmin){ document.getElementById('btn-admin').style.display='inline-block'; const na=document.getElementById('nav-admin'); if(na) na.style.display='flex'; const be=document.getElementById('btn-edit-sobre'); if(be) be.style.display='inline-block'; }
+    if(ehAdmin){ document.getElementById('btn-admin').style.display='inline-block'; const na=document.getElementById('nav-admin'); if(na) na.style.display='flex'; const be=document.getElementById('btn-edit-sobre'); if(be) be.style.display='inline-block'; const bv=document.getElementById('btn-edit-vip'); if(bv) bv.style.display='inline-block'; const sf=document.getElementById('sup-form'); if(sf) sf.style.display='none'; }
     document.getElementById('view-login').classList.add('hidden');
     document.getElementById('view-app').classList.remove('hidden');
     await carregar(); await carregarChat();
@@ -589,9 +608,9 @@
     abrirTicket(data.id); }
   async function notificarDiscord(info){ try{ const {data:{session}}=await sb.auth.getSession(); const token=session&&session.access_token; if(!token)return; await fetch('/api/notify-discord',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({token},info))}); }catch(e){} }
   async function adquirirVip(){ if(!UID){ alert('Faça login primeiro.'); return; }
-    if(!confirm('Abrir um chamado dizendo que você quer adquirir o VIP Premium (R$ 79,90/mês)?\nA administração vai combinar tudo com você pelo chat do ticket.')) return;
+    if(!confirm('Abrir um chamado dizendo que você quer adquirir o VIP Premium ('+VIPVALOR+'/mês)?\nA administração vai combinar tudo com você pelo chat do ticket.')) return;
     const assunto='Quero adquirir VIP Premium';
-    const mensagem='Olá! Tenho interesse em adquirir o VIP Premium TGT (R$ 79,90/mês). Quero garantir meu horário fixo diário. Podem me passar como prosseguir?';
+    const mensagem='Olá! Tenho interesse em adquirir o VIP Premium TGT ('+VIPVALOR+'/mês). Quero garantir meu horário fixo diário. Podem me passar como prosseguir?';
     const {data,error}=await sb.from('tickets').insert({user_id:UID,nick:meuNick,tipo:'vip',assunto,mensagem}).select('id').single();
     if(error){ alert('Erro: '+error.message); return; }
     notificarDiscord({tipo:'vip',nick:meuNick,assunto,mensagem});
@@ -611,6 +630,7 @@
     box.innerHTML=arr.map((p,i)=>{ const real=p.pontos/10; const pct=real.toFixed(1).replace('.',','); const ok=real>=TAXA; const cor=ok?'var(--muted)':'#ff6b6b'; return `<div class="rk"><div class="p">${i+1}</div><div class="av" style="background:${GRAD[platDe(p.nick)]}">${ini(p.nick)}</div><div class="u" style="${ok?'':'color:#ff6b6b'}">${p.vip?'👑 ':''}${p.nick}${ok?'':' <span style="font-size:10px;font-weight:700">⚠ abaixo da taxa</span>'}</div><div class="pt" style="text-align:right;${ok?'':'color:#ff6b6b'}">${Number(p.pontos).toLocaleString('pt-BR')}<span style="display:block;font-size:11px;color:${cor};font-family:Inter;font-weight:600">${pct}%</span></div></div>`; }).join(''); }
   function mostrar(v){
     document.body.classList.remove('nav-open');
+    document.body.classList.toggle('fullpage', !['inicio','comunidade'].includes(v));
     ['inicio','comunidade','streamers','pontos','agenda','disp','suporte','vip','admin','sobre'].forEach(x=>{ const el=document.getElementById('v-'+x); if(el) el.classList.toggle('hidden',x!==v); });
     document.querySelectorAll('[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
     if(v==='streamers') renderStreamersFull();
@@ -775,13 +795,18 @@
   function fecharTicket(){ document.getElementById('tk-modal').classList.add('hidden'); if(tkSub){ sb.removeChannel(tkSub); tkSub=null; } tkAtual=null; carregarMeusTickets(); if(ehAdmin) carregarTicketsAdmin(); }
   async function excluirTicket(id){ if(!ehAdmin)return; if(!confirm('Excluir este ticket e toda a conversa? Não dá pra desfazer.'))return; const {error}=await sb.from('tickets').delete().eq('id',id); if(error){ alert('Erro: '+error.message); return; } fecharTicket(); }
   // ---- Sobre (editável pelo admin) ----
-  let sobreTxt='';
-  async function carregarConfig(){ const {data}=await sb.from('site_config').select('sobre,horas,taxa').eq('id',1).maybeSingle();
+  let sobreTxt='', VIPVALOR='R$ 79,90';
+  async function carregarConfig(){ const {data}=await sb.from('site_config').select('sobre,horas,taxa,vip_valor').eq('id',1).maybeSingle();
     sobreTxt=(data&&data.sobre)||'A TGT — The Golden Team é a maior comunidade de streamers do Brasil. 🦅';
     HORAS=(data&&Array.isArray(data.horas)&&data.horas.length)?data.horas.slice().sort((a,b)=>a-b):Array.from({length:24},(_,i)=>i);
     TAXA=(data&&data.taxa!=null)?Number(data.taxa):60;
+    VIPVALOR=(data&&data.vip_valor)||'R$ 79,90';
     const ti=document.getElementById('taxa-input'); if(ti) ti.value=TAXA;
+    const vv=document.getElementById('vip-valor'); if(vv) vv.textContent=VIPVALOR;
     const el=document.getElementById('sobre-texto'); if(el) el.textContent=sobreTxt; }
+  async function editarVipValor(){ if(!ehAdmin)return; const novo=prompt('Novo valor mensal do VIP (ex.: R$ 79,90):', VIPVALOR); if(novo==null)return; const v=novo.trim(); if(!v)return;
+    const {error}=await sb.from('site_config').upsert({id:1,vip_valor:v,updated_at:new Date().toISOString()}); if(error){ alert('Erro: '+error.message); return; }
+    VIPVALOR=v; const vv=document.getElementById('vip-valor'); if(vv) vv.textContent=v; }
   async function salvarTaxa(){ const v=parseFloat(document.getElementById('taxa-input').value); const st=document.getElementById('taxa-status');
     if(isNaN(v)||v<0||v>100){ st.style.color='var(--err)'; st.textContent='Taxa inválida (0 a 100)'; return; }
     st.style.color='var(--muted)'; st.textContent='Salvando...';
