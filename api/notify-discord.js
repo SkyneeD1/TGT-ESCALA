@@ -29,11 +29,15 @@ export default async function handler(req, res) {
 
   const DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
   const eCompra = tipo === 'compra';
+  const eVip = tipo === 'vip';
   const eFechado = acao === 'fechado';
   let cor, titulo;
   if (eFechado) {
     cor = 0x988a64; // cinza/dourado apagado
-    titulo = eCompra ? '✅ Compra de horário ENCERRADA' : '✅ Ticket de suporte ENCERRADO';
+    titulo = eCompra ? '✅ Compra de horário ENCERRADA' : (eVip ? '✅ Pedido de VIP ENCERRADO' : '✅ Ticket de suporte ENCERRADO');
+  } else if (eVip) {
+    cor = 0xffd700; // dourado VIP
+    titulo = '👑 Novo pedido de VIP PREMIUM';
   } else {
     cor = eCompra ? 0x4fe018 : 0xffc83d; // verde compra / dourado suporte
     titulo = eCompra ? '🛒 Novo pedido de COMPRA de horário' : '🎫 Novo ticket de SUPORTE';
