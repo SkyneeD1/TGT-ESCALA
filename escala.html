@@ -330,8 +330,9 @@
   function dadosComLinks(){ const d={}; SLOTS.forEach(s=>d[s]=escala[s]); const links={}; membros.forEach(m=>{ links[m.nome]=m.link||''; }); d.__links=links; return d; }
   async function publicarEscala(){
     let total=0; SLOTS.forEach(s=>total+=Object.keys(escala[s]).length);
-    if(!total){ toast('Escala vazia — gere/monte antes de publicar.','warn'); return; }
-    if(!(await modalConfirm('Publicar a escala atual <b>pros streamers</b>? Eles vão ver na aba "Minha Escala".','Publicar'))) return;
+    const aviso = total ? 'Publicar a escala atual <b>pros streamers</b>? Eles vão ver na aba "Minha Escala".'
+                        : 'A escala está <b>vazia</b>. Publicar mesmo assim? Os streamers verão a agenda em branco.';
+    if(!(await modalConfirm(aviso,'Publicar'))) return;
     const dataIni=document.getElementById('p-data').value;
     const {error}=await sb.from('escala_pub').upsert({ id:1, semana_inicio:dataIni, dados:dadosComLinks(), updated_at:new Date().toISOString() });
     if(error){ toast('Erro ao publicar: '+error.message,'err'); return; }
