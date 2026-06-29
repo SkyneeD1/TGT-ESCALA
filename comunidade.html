@@ -580,7 +580,7 @@
     for(let d=0;d<7;d++){ const it=[]; for(const k in o){ const [dd,hh]=k.split('-').map(Number); if(dd===d){ const n=o[k]; if(soMeu && !ehMeu(n)) continue; it.push({h:hh,n}); } } it.sort((a,b)=>a.h-b.h);
       h+=`<div class="col"><h6>${DIAS[d]}</h6>`;
       if(!it.length) h+='<div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px 0">—</div>';
-      it.forEach(e=>{ const pl=platDe(e.n); h+=`<div class="ev"><div class="t">${String(e.h).padStart(2,'0')}:00</div><div class="n">${isVip(e.n)?'👑 ':''}${e.n}</div><span class="pill ${pl}">${pl.toUpperCase()}</span></div>`; });
+      it.forEach(e=>{ const pl=platDe(e.n); const url=linkCanal(e.n); h+=`<div class="ev" ${url?`onclick="window.open('${url}','_blank')" style="cursor:pointer"`:''} title="${url?'Abrir canal de '+e.n:e.n}"><div class="t">${String(e.h).padStart(2,'0')}:00</div><div class="n">${isVip(e.n)?'👑 ':''}${e.n}</div><span class="pill ${pl}">${pl.toUpperCase()}</span></div>`; });
       h+='</div>'; }
     return h; }
   function meusDiasHTML(){ let h='';
@@ -605,7 +605,7 @@
     for(const hora of HORAS){ h+=`<tr><td class="hc">${String(hora).padStart(2,'0')}:00</td>`;
       for(let d=0;d<7;d++){ const k=d+'-'+hora; const nick=o[k]; const aVenda=!!venda[slot+'|'+k];
         if(nick && ehVendaNick(nick)){ h+=`<td><div class="gc venda" onclick="${ehAdmin?'':`comprar('${slot}','${k}',${hora})`}" title="${ehAdmin?'Vinculado ao TGT — disponível pra compra':'clique pra comprar'}">${ehAdmin?'à venda (TGT)':'COMPRAR'}</div></td>`; }
-        else if(nick){ const pl=platDe(nick); h+=`<td><div class="gc ${pl}${ehMeu(nick)?' meu':''}" title="${nick}">${nick}</div></td>`; }
+        else if(nick){ const pl=platDe(nick); const url=linkCanal(nick); h+=`<td><div class="gc ${pl}${ehMeu(nick)?' meu':''}" ${url?`onclick="window.open('${url}','_blank')" style="cursor:pointer"`:''} title="${url?'Abrir canal de '+nick:nick}">${nick}</div></td>`; }
         else if(aVenda){ h+=`<td><div class="gc venda" onclick="${ehAdmin?`toggleVenda('${slot}','${k}')`:`comprar('${slot}','${k}',${hora})`}" title="${ehAdmin?'clique pra tirar da venda':'clique pra comprar'}">${ehAdmin?'à venda ✕':'COMPRAR'}</div></td>`; }
         else { h+=`<td><div class="gc ${ehAdmin?'vender':'vago'}" ${ehAdmin?`onclick="toggleVenda('${slot}','${k}')" title="anunciar à venda"`:''}>${ehAdmin?'+ vender':'·'}</div></td>`; }
       }
