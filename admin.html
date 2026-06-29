@@ -141,6 +141,7 @@
         <td style="white-space:nowrap">
           <button class="btn ghost" style="padding:4px 9px;font-size:11px;color:${vip?'#ffd24a':'var(--muted)'}" onclick="setVip('${p.user_id}','${nk}',${vip?'false':'true'})">${vip?'👑 Tirar VIP':'👑 Tornar VIP'}</button>
           <button class="btn ghost" style="padding:4px 9px;font-size:11px" onclick="toggleUsuario('${p.user_id}','${nk}',${ativo?'false':'true'})">${ativo?'⏸️ Desativar':'▶️ Ativar'}</button>
+          <button class="btn ghost" style="padding:4px 9px;font-size:11px;color:#9bd0ff" onclick="trocarSenha('${p.user_id}','${nk}')">🔒 Senha</button>
           <button class="btn ghost" style="padding:4px 9px;font-size:11px;color:#ff9b9b" onclick="deletarUsuario('${p.user_id}','${nk}')">🗑️ Excluir</button>
         </td></tr>`; });
     box.innerHTML=h+'</tbody></table>';
@@ -156,6 +157,13 @@
     const r=await fetch('/api/toggle-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,user_id:id,ativar})});
     const j=await r.json(); if(!r.ok){ alert('Erro: '+(j.error||r.status)); return; }
     carregarLista();
+  }
+  async function trocarSenha(id,nick){
+    const pw=prompt('Nova senha para "'+nick+'" (mínimo 6 caracteres):');
+    if(pw==null) return; if(pw.length<6){ alert('Senha muito curta (mín. 6).'); return; }
+    const r=await fetch('/api/set-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,user_id:id,password:pw})});
+    const j=await r.json(); if(!r.ok){ alert('Erro: '+(j.error||r.status)); return; }
+    alert('✅ Senha de "'+nick+'" alterada.');
   }
   async function deletarUsuario(id,nick){
     if(!confirm('EXCLUIR "'+nick+'" de vez? Apaga o login E a disponibilidade dele. Não dá pra desfazer.')) return;
