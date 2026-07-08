@@ -242,6 +242,7 @@
       <button class="burger" onclick="document.body.classList.toggle('nav-open')" aria-label="Menu">☰</button>
       <nav class="menu"><a data-v="inicio" class="on" onclick="mostrar('inicio')">INÍCIO</a><a data-v="comunidade" onclick="mostrar('comunidade')">COMUNIDADE</a><a data-v="streamers" onclick="mostrar('streamers')">STREAMERS</a><a data-v="pontos" onclick="mostrar('pontos')">PONTOS</a><a data-v="agenda" onclick="mostrar('agenda')">AGENDA</a><a data-v="vip" onclick="mostrar('vip')" style="color:var(--gold)">👑 VIP</a><a data-v="sobre" onclick="mostrar('sobre')">SOBRE</a></nav>
       <span class="who">Olá, <b id="ap-nick">—</b></span>
+      <button class="btn" id="btn-download" style="display:none;background:linear-gradient(100deg,#39d98a,#1fae6a);color:#052b17" onclick="baixarApp()">⬇️ BAIXAR APP</button>
       <button class="btn" onclick="mostrar('disp')">MINHA DISPONIBILIDADE</button>
       <button class="btn outline" id="btn-admin" style="display:none" onclick="location.href='admin.html'">ADMIN</button>
       <button class="btn outline" onclick="sair()">SAIR</button>
@@ -450,6 +451,12 @@
         <div style="margin-top:12px;display:flex;align-items:center;gap:12px"><button class="btn" onclick="salvarHoras()">SALVAR HORÁRIOS</button><span class="msg" id="horas-status"></span></div>
       </div>
       <div class="card" style="padding:20px;margin-bottom:14px;max-width:680px">
+        <h3 style="margin:0 0 6px;font-family:Oswald;color:var(--gold);font-size:16px">LINK DE DOWNLOAD DO APP</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 12px">Cole o link do app (ex.: Google Drive, MediaFire, site). Aparece como botão <b>⬇️ BAIXAR APP</b> lá no topo pra todo mundo. Deixe vazio pra esconder o botão.</p>
+        <input id="app-link-input" placeholder="https://..." style="max-width:520px">
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px"><button class="btn" onclick="salvarAppLink()">SALVAR LINK</button><span class="msg" id="app-link-status"></span></div>
+      </div>
+      <div class="card" style="padding:20px;margin-bottom:14px;max-width:680px">
         <h3 style="margin:0 0 6px;font-family:Oswald;color:var(--gold);font-size:16px">TAXA DE QUALIFICAÇÃO</h3>
         <p style="color:var(--muted);font-size:13px;margin:0 0 12px">Porcentagem mínima pra ser <b>qualificado</b>. No ranking, quem ficar <b>abaixo</b> dessa taxa aparece em <span style="color:#ff6b6b;font-weight:700">vermelho</span>.</p>
         <div style="display:flex;align-items:center;gap:10px">
@@ -599,22 +606,17 @@
     el.innerHTML=`<div class="agtabs">${tabs}</div><div class="agenda">${diasHTML(agSlot,false)}</div>`; }
   function setAgSlot(s,cid,soMeu){ agSlot=s; if(cid==='full-agenda') renderAgendaFull(); else if(cid==='agenda') agenda(); else agendaTabsGrid(cid,!!soMeu); }
   // grade completa de UMA lista (24h x 7 dias) com vagos / à venda / comprar
-  function gradeListaHTML(slot,cid){ const o=PUB[slot]||{}; const venda=PUB.__venda||{};
+  function gradeListaHTML(slot,cid){ const o=PUB[slot]||{};
     let h='<div class="agtabs">'+SLOTS.map(s=>{const vip=VIP_SLOTS.includes(s);return `<button class="agtab ${s===slot?'on':''}" onclick="setAgSlot('${s}','${cid}',0)">${vip?'⭐ ':''}Lista ${romano(s)}</button>`;}).join('')+'</div>';
     h+='<div class="dgw"><table class="dg"><thead><tr><th>Hora</th>'+DIAS.map(d=>`<th>${d}</th>`).join('')+'</tr></thead><tbody>';
     for(const hora of HORAS){ h+=`<tr><td class="hc">${String(hora).padStart(2,'0')}:00</td>`;
-      for(let d=0;d<7;d++){ const k=d+'-'+hora; const nick=o[k]; const aVenda=!!venda[slot+'|'+k];
+      for(let d=0;d<7;d++){ const k=d+'-'+hora; const nick=o[k];
         if(nick && ehVendaNick(nick)){ h+=`<td><div class="gc venda" onclick="${ehAdmin?'':`comprar('${slot}','${k}',${hora})`}" title="${ehAdmin?'Vinculado ao TGT — disponível pra compra':'clique pra comprar'}">${ehAdmin?'à venda (TGT)':'COMPRAR'}</div></td>`; }
         else if(nick){ const pl=platDe(nick); const url=linkCanal(nick); h+=`<td><div class="gc ${pl}${ehMeu(nick)?' meu':''}" ${url?`onclick="window.open('${url}','_blank')" style="cursor:pointer"`:''} title="${url?'Abrir canal de '+nick:nick}">${nick}</div></td>`; }
-        else if(aVenda){ h+=`<td><div class="gc venda" onclick="${ehAdmin?`toggleVenda('${slot}','${k}')`:`comprar('${slot}','${k}',${hora})`}" title="${ehAdmin?'clique pra tirar da venda':'clique pra comprar'}">${ehAdmin?'à venda ✕':'COMPRAR'}</div></td>`; }
-        else { h+=`<td><div class="gc ${ehAdmin?'vender':'vago'}" ${ehAdmin?`onclick="toggleVenda('${slot}','${k}')" title="anunciar à venda"`:''}>${ehAdmin?'+ vender':'·'}</div></td>`; }
+        else { h+=`<td><div class="gc vago">·</div></td>`; }
       }
       h+='</tr>'; }
     return h+'</tbody></table></div>'; }
-  async function toggleVenda(slot,k){ if(!ehAdmin) return; if(!PUB.__venda)PUB.__venda={}; const vk=slot+'|'+k;
-    if(PUB.__venda[vk]) delete PUB.__venda[vk]; else PUB.__venda[vk]=true;
-    const {error}=await sb.from('escala_pub').upsert({id:1,semana_inicio:SEMANA,dados:PUB,updated_at:new Date().toISOString()});
-    if(error){ alert('Erro ao salvar: '+error.message); return; } renderAgendaFull(); }
   async function comprar(slot,k,hora){ const d=+k.split('-')[0]; const dia=DIAS[d]; const hh=String(hora).padStart(2,'0')+':00';
     if(!confirm('Comprar o horário '+hh+' de '+dia+' na Lista '+romano(slot)+'?\nVocê vai conversar com a administração pra combinar.')) return;
     const {data,error}=await sb.from('tickets').insert({user_id:UID,nick:meuNick,tipo:'compra',assunto:'Compra — Lista '+romano(slot)+' · '+dia+' '+hh,mensagem:'Olá! Quero comprar este horário (Lista '+romano(slot)+', '+dia+' '+hh+').',lista:slot,dia:d,hora:hora}).select('id').single();
@@ -741,7 +743,7 @@
   // ----- PONTUAÇÃO (admin sobe Excel) -----
   function lerXlsx(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>{try{res(XLSX.read(e.target.result,{type:'array'}))}catch(x){rej(x)}}; r.onerror=()=>rej(new Error('falha ao ler')); r.readAsArrayBuffer(file); }); }
   function rowsDe(wb){ const ws=wb.Sheets[wb.SheetNames[0]]; return XLSX.utils.sheet_to_json(ws,{header:1,defval:''}); }
-  function normNick(s){ s=String(s||'').trim().toLowerCase(); if(!s)return''; const m=s.match(/(?:kick\.com|twitch\.tv|youtube\.com|tiktok\.com)\/@?([^\/\s?]+)/); if(m)s=m[1]; return s.replace(/^@/,'').trim().replace(/\/+$/,''); }
+  function normNick(s){ s=String(s||'').trim().toLowerCase(); if(!s)return''; const m=s.match(/(?:kick\.com|twitch\.tv|youtube\.com|tiktok\.com)\/@?([^\/\s?]+)/); if(m)s=m[1]; s=s.replace(/^@/,'').replace(/\/+$/,''); s=s.normalize('NFD').replace(/[̀-ͯ]/g,''); return s.replace(/[^a-z0-9]/g,''); }
   async function zerarPontos(){
     const st=document.getElementById('pt-status');
     if(!confirm('Zerar a pontuação de TODOS os streamers? (ex.: pra começar uma nova semana)')) return;
@@ -819,15 +821,25 @@
   function fecharTicket(){ document.getElementById('tk-modal').classList.add('hidden'); if(tkSub){ sb.removeChannel(tkSub); tkSub=null; } tkAtual=null; carregarMeusTickets(); if(ehAdmin) carregarTicketsAdmin(); }
   async function excluirTicket(id){ if(!ehAdmin)return; if(!confirm('Excluir este ticket e toda a conversa? Não dá pra desfazer.'))return; const {error}=await sb.from('tickets').delete().eq('id',id); if(error){ alert('Erro: '+error.message); return; } fecharTicket(); }
   // ---- Sobre (editável pelo admin) ----
-  let sobreTxt='', VIPVALOR='R$ 79,90';
-  async function carregarConfig(){ const {data}=await sb.from('site_config').select('sobre,horas,taxa,vip_valor').eq('id',1).maybeSingle();
+  let sobreTxt='', VIPVALOR='R$ 79,90', APPLINK='';
+  async function carregarConfig(){ const {data}=await sb.from('site_config').select('sobre,horas,taxa,vip_valor,app_link').eq('id',1).maybeSingle();
     sobreTxt=(data&&data.sobre)||'A TGT — The Golden Team é a maior comunidade de streamers do Brasil. 🦅';
     HORAS=(data&&Array.isArray(data.horas)&&data.horas.length)?data.horas.slice().sort((a,b)=>a-b):Array.from({length:24},(_,i)=>i);
     TAXA=(data&&data.taxa!=null)?Number(data.taxa):60;
     VIPVALOR=(data&&data.vip_valor)||'R$ 79,90';
+    APPLINK=(data&&data.app_link)||'';
     const ti=document.getElementById('taxa-input'); if(ti) ti.value=TAXA;
     const vv=document.getElementById('vip-valor'); if(vv) vv.textContent=VIPVALOR;
+    const ali=document.getElementById('app-link-input'); if(ali) ali.value=APPLINK;
+    const bd=document.getElementById('btn-download'); if(bd) bd.style.display=APPLINK?'inline-block':'none';
     const el=document.getElementById('sobre-texto'); if(el) el.textContent=sobreTxt; }
+  function baixarApp(){ if(APPLINK) window.open(APPLINK,'_blank'); }
+  async function salvarAppLink(){ const v=document.getElementById('app-link-input').value.trim(); const st=document.getElementById('app-link-status');
+    st.style.color='var(--muted)'; st.textContent='Salvando...';
+    const {error}=await sb.from('site_config').upsert({id:1,app_link:v,updated_at:new Date().toISOString()});
+    if(error){ st.style.color='var(--err)'; st.textContent='Erro: '+error.message; return; }
+    APPLINK=v; const bd=document.getElementById('btn-download'); if(bd) bd.style.display=v?'inline-block':'none';
+    st.style.color='var(--ok)'; st.textContent=v?'✅ Link salvo! Botão ativo.':'✅ Link removido (botão escondido).'; }
   async function editarVipValor(){ if(!ehAdmin)return; const novo=prompt('Novo valor mensal do VIP (ex.: R$ 79,90):', VIPVALOR); if(novo==null)return; const v=novo.trim(); if(!v)return;
     const {error}=await sb.from('site_config').upsert({id:1,vip_valor:v,updated_at:new Date().toISOString()}); if(error){ alert('Erro: '+error.message); return; }
     VIPVALOR=v; const vv=document.getElementById('vip-valor'); if(vv) vv.textContent=v; }
@@ -856,9 +868,13 @@
   async function marcarVendido(id){ if(!ehAdmin||!tkInfo)return; const slot=tkInfo.lista, d=tkInfo.dia, h=tkInfo.hora;
     if(slot==null||d==null||h==null){ alert('Esse ticket não tem horário vinculado.'); return; }
     if(!confirm('Marcar VENDIDO e escalar '+tkInfo.nick+' em Lista '+romano(slot)+' · '+DIAS[d]+' '+String(h).padStart(2,'0')+':00?')) return;
-    const k=d+'-'+h; if(!PUB[slot])PUB[slot]={}; PUB[slot][k]=tkInfo.nick; if(PUB.__venda) delete PUB.__venda[slot+'|'+k];
-    const e1=await sb.from('escala_pub').upsert({id:1,semana_inicio:SEMANA,dados:PUB,updated_at:new Date().toISOString()});
+    // relê a escala publicada completa antes de gravar (evita apagar as outras listas)
+    const cur=await sb.from('escala_pub').select('dados,semana_inicio').eq('id',1).maybeSingle();
+    const dados=(cur.data&&cur.data.dados)||PUB||{}; const semana=(cur.data&&cur.data.semana_inicio)||SEMANA;
+    const k=d+'-'+h; if(!dados[slot])dados[slot]={}; dados[slot][k]=tkInfo.nick; if(dados.__venda) delete dados.__venda[slot+'|'+k];
+    const e1=await sb.from('escala_pub').upsert({id:1,semana_inicio:semana,dados,updated_at:new Date().toISOString()});
     if(e1.error){ alert('Erro ao escalar: '+e1.error.message); return; }
+    PUB=dados; SEMANA=semana;
     await sb.from('tickets').update({status:'vendido'}).eq('id',id);
     await sb.from('ticket_msgs').insert({ticket_id:id,user_id:UID,nick:meuNick,texto:'✅ Vendido! Você foi escalado: Lista '+romano(slot)+' · '+DIAS[d]+' '+String(h).padStart(2,'0')+':00'});
     notificarDiscord({acao:'fechado',tipo:'compra',nick:tkInfo.nick,assunto:tkInfo.assunto,mensagem:'Vendido e escalado: Lista '+romano(slot)+' · '+DIAS[d]+' '+String(h).padStart(2,'0')+':00',lista:slot,dia:d,hora:h});
