@@ -567,11 +567,26 @@
     PUB=(r2.data&&r2.data.dados)||{}; SEMANA=r2.data&&r2.data.semana_inicio;
     await carregarConfig();
     numeros(); streamers(); agenda(); ranking(); aprov();
+    atualizarLivesKick();
+    if(!window.__liveTimer) window.__liveTimer=setInterval(atualizarLivesKick,60000);
   }
   function temEscala(){ return SLOTS.some(s=>PUB[s]&&Object.keys(PUB[s]).length); }
   const VAZIO='<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px">Nenhuma escala publicada ainda.<br>O admin gera em <b>ADMIN → Montar escala</b> e clica <b>📢 Publicar</b>.</div>';
   function contLives(){ const c={}; SLOTS.forEach(s=>{ const o=PUB[s]||{}; for(const k in o){ const n=o[k]; if(n)c[n]=(c[n]||0)+1; } }); return c; }
-  function aoVivo(nick){ const nd=(new Date().getDay()+6)%7,nh=new Date().getHours(); for(const s of SLOTS){ if((PUB[s]||{})[nd+'-'+nh]===nick) return true; } return false; }
+  let LIVESET=new Set(), LIVEOK=false;
+  function escaladoAgora(nick){ const nd=(new Date().getDay()+6)%7,nh=new Date().getHours(); for(const s of SLOTS){ if((PUB[s]||{})[nd+'-'+nh]===nick) return true; } return false; }
+  function aoVivo(nick){ if(LIVESET.has(nick)) return true; if(!LIVEOK) return escaladoAgora(nick); return platDe(nick)!=='kick' && escaladoAgora(nick); }
+  function kickSlug(nick){ const p=PERFIS.find(x=>x.nick===nick); let l=String((p&&p.link)||'').trim().toLowerCase(); const m=l.match(/kick\.com\/@?([^\/\s?#]+)/); return m?m[1]:''; }
+  async function atualizarLivesKick(){ try{
+    const alvos=PERFIS.filter(p=>platDe(p.nick)==='kick').map(p=>({nick:p.nick,slug:kickSlug(p.nick)})).filter(x=>x.slug);
+    if(!alvos.length) return;
+    const r=await fetch('/api/kick-live',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slugs:alvos.map(a=>a.slug)})});
+    const j=await r.json().catch(()=>null);
+    if(!r.ok||!j||!j.ok) return; // Kick bloqueou → mantém modo escala
+    const liveSlugs=new Set((j.live||[]).map(s=>String(s).toLowerCase()));
+    LIVESET=new Set(alvos.filter(a=>liveSlugs.has(a.slug.toLowerCase())).map(a=>a.nick));
+    LIVEOK=true; streamers(); if(!document.getElementById('v-streamers').classList.contains('hidden')) renderStreamersFull();
+  }catch(e){} }
 
   function numeros(){ document.getElementById('n-membros').textContent=PERFIS.length;
     let l=0; SLOTS.forEach(s=>l+=Object.keys(PUB[s]||{}).length); document.getElementById('n-lives').textContent=l;
