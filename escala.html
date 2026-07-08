@@ -299,8 +299,8 @@
           pontos[key]=pct;
         }
       }
-      // pontuação da planilha vem na escala x10 (ex.: 956 = 95,6%). Dividimos por 10 pra bater com o ranking e com as faixas (0–100).
-      let n=0; membros.forEach(m=>{ const k=normNick(m.nome); if(pontos[k]!=null){ m.pontos=Math.round(pontos[k])/10; n++; } });
+      // pontuação da planilha: 1440 pontos = 100%. Converte pra % (0–100) pra bater com o ranking e as faixas.
+      let n=0; membros.forEach(m=>{ const k=normNick(m.nome); if(pontos[k]!=null){ m.pontos=Math.round(pontos[k]/1440*1000)/10; n++; } });
       renderMembros(); renderDist();
       document.getElementById('imp-status').innerHTML=`✅ Pontuação aplicada a <b>${n}</b> streamers.`;
       toast(`✅ Pontuação aplicada a ${n}.`,'ok');
